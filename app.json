@@ -18,8 +18,10 @@
       "bundleIdentifier": "com.ledgr.app",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to capture receipt photos.",
-        "NSPhotoLibraryUsageDescription": "This app accesses your photos to attach receipt images to expenses."
-      }
+        "NSPhotoLibraryUsageDescription": "This app accesses your photos to attach receipt images to expenses.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
