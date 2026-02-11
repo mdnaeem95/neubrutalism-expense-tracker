@@ -63,11 +63,7 @@
       "typedRoutes": true
     },
     "_BEFORE_BUILD": [
-      "Replace extra.eas.projectId with your EAS project ID",
-      "Replace RevenueCat API keys in services/subscriptions.ts",
-      "Replace AdMob ad unit IDs in services/ads.tsx",
-      "Replace Privacy Policy URL in app/(tabs)/settings.tsx",
-      "Replace Terms of Service URL in app/(tabs)/settings.tsx"
+      "Replace AdMob ad unit IDs in services/ads.tsx (after app is published)"
     ],
     "extra": {
       "router": {},

@@ -221,13 +221,11 @@ export default function SettingsScreen() {
           <SettingsRow icon="information-circle-outline" label="Version" value="1.0.0" onPress={() => {}} showArrow={false} colors={colors} styles={styles} />
           <View style={styles.divider} />
           <SettingsRow icon="document-text-outline" label="Privacy Policy" onPress={() => {
-            // TODO: BEFORE_BUILD — Replace with your privacy policy URL
-            WebBrowser.openBrowserAsync('https://yourwebsite.com/privacy');
+            WebBrowser.openBrowserAsync('https://mdnaeem95.github.io/neubrutalism-expense-tracker/privacy.html');
           }} color={colors.accent} colors={colors} styles={styles} />
           <View style={styles.divider} />
           <SettingsRow icon="clipboard-outline" label="Terms of Service" onPress={() => {
-            // TODO: BEFORE_BUILD — Replace with your terms of service URL
-            WebBrowser.openBrowserAsync('https://yourwebsite.com/terms');
+            WebBrowser.openBrowserAsync('https://mdnaeem95.github.io/neubrutalism-expense-tracker/terms.html');
           }} color={colors.accent} colors={colors} styles={styles} />
         </NeuCard>
       </MotiView>
