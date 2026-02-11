@@ -1,59 +1,120 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { initializeDatabase } from '@/db';
+import { useSettingsStore } from '@/stores/useSettingsStore';
+import { useCategoryStore } from '@/stores/useCategoryStore';
+import { useExpenseStore } from '@/stores/useExpenseStore';
+import { useBudgetStore } from '@/stores/useBudgetStore';
+import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
+import { initializeAds, loadInterstitial } from '@/services/ads';
+import { initializeSubscriptions } from '@/services/subscriptions';
+import { refreshNotifications } from '@/services/notifications';
+import { processRecurringExpenses } from '@/services/recurring';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { DialogProvider } from '@/contexts/DialogContext';
+import { ThemeProvider, useTheme } from '@/lib/ThemeContext';
+import { lightColors } from '@/lib/theme';
 
-import { useColorScheme } from '@/components/useColorScheme';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+function RootLayoutInner() {
+  const { colors, isDark } = useTheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+          animation: 'slide_from_right',
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="onboarding/index" options={{ animation: 'fade' }} />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="paywall"
+          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen
+          name="export"
+          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen name="expense/[id]" />
+        <Stack.Screen name="category/index" />
+        <Stack.Screen name="category/[id]" />
+        <Stack.Screen name="budget/index" />
+        <Stack.Screen name="budget/[id]" />
       </Stack>
-    </ThemeProvider>
+    </>
   );
 }
+
+export default function RootLayout() {
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    async function bootstrap() {
+      try {
+        initializeDatabase();
+        await useSettingsStore.getState().loadSettings();
+        useCategoryStore.getState().loadCategories();
+        useExpenseStore.getState().loadExpenses();
+        // Generate any overdue recurring expenses, then reload
+        const generated = processRecurringExpenses();
+        if (generated > 0) useExpenseStore.getState().loadExpenses();
+        useBudgetStore.getState().loadBudgets();
+        await useSubscriptionStore.getState().loadSubscriptionStatus();
+        await initializeAds();
+        loadInterstitial();
+        await initializeSubscriptions();
+        const settings = useSettingsStore.getState();
+        if (settings.notificationsEnabled || settings.budgetAlerts) {
+          await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts);
+        }
+      } catch (error) {
+        console.error('Bootstrap error:', error);
+      } finally {
+        setIsReady(true);
+        await SplashScreen.hideAsync();
+      }
+    }
+
+    bootstrap();
+  }, []);
+
+  if (!isReady) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={lightColors.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary>
+        <ThemeProvider>
+          <DialogProvider>
+            <RootLayoutInner />
+          </DialogProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
+  );
+}
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: lightColors.background,
+  },
+});

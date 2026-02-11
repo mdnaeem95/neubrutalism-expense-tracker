@@ -1,28 +1,38 @@
 {
   "expo": {
-    "name": "neubrutalism-expense-tracker",
-    "slug": "neubrutalism-expense-tracker",
+    "name": "Ledgr",
+    "slug": "ledgr",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "neubrutalismexpensetracker",
-    "userInterfaceStyle": "automatic",
+    "scheme": "ledgr",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFFBF0"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ledgr.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to capture receipt photos.",
+        "NSPhotoLibraryUsageDescription": "This app accesses your photos to attach receipt images to expenses."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FFD60A"
       },
+      "package": "com.ledgr.app",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -30,10 +40,41 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-sqlite",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "This app accesses your photos to attach receipts to expenses.",
+          "cameraPermission": "This app uses the camera to capture receipt photos."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#FFD60A"
+        }
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "_BEFORE_BUILD": [
+      "Replace extra.eas.projectId with your EAS project ID",
+      "Replace RevenueCat API keys in services/subscriptions.ts",
+      "Replace AdMob ad unit IDs in services/ads.tsx",
+      "Replace Privacy Policy URL in app/(tabs)/settings.tsx",
+      "Replace Terms of Service URL in app/(tabs)/settings.tsx"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d2549269-24d4-46cf-8528-9ae9b6e6acec"
+      }
+    },
+    "owner": "naeemsani"
   }
 }

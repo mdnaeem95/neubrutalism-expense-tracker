@@ -1,0 +1,280 @@
+import { NeuCard, NeuChip, NeuSwitch } from '@/components/ui';
+import { useDialog } from '@/contexts/DialogContext';
+import type { ThemeBorders, ThemeColors, ThemeTypography } from '@/lib/theme';
+import { borderRadius, CURRENCIES, spacing } from '@/lib/theme';
+import { useTheme } from '@/lib/ThemeContext';
+import { requestNotificationPermissions, scheduleBudgetAlerts, scheduleRecurringReminders, cancelAllNotifications } from '@/services/notifications';
+import { useBudgetStore } from '@/stores/useBudgetStore';
+import { useCategoryStore } from '@/stores/useCategoryStore';
+import { useExpenseStore } from '@/stores/useExpenseStore';
+import { useSettingsStore } from '@/stores/useSettingsStore';
+import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import * as WebBrowser from 'expo-web-browser';
+import { useRouter } from 'expo-router';
+import { MotiView } from 'moti';
+import React, { useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+function SettingsRow({ icon, label, value, onPress, showArrow = true, color, colors, styles }: {
+  icon: keyof typeof Ionicons.glyphMap; label: string; value?: string; onPress: () => void; showArrow?: boolean; color?: string; colors: ThemeColors; styles: ReturnType<typeof createStyles>;
+}) {
+  return (
+    <Pressable onPress={onPress} style={styles.settingsRow}>
+      <View style={[styles.settingsIcon, { backgroundColor: (color ?? colors.primary) + '20' }]}>
+        <Ionicons name={icon} size={18} color={color ?? colors.primary} />
+      </View>
+      <Text style={styles.settingsLabel}>{label}</Text>
+      <View style={styles.settingsRight}>
+        {value && <Text style={styles.settingsValue}>{value}</Text>}
+        {showArrow && <Ionicons name="chevron-forward" size={18} color={colors.textLight} />}
+      </View>
+    </Pressable>
+  );
+}
+
+export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { colors, borders, shadows, typography } = useTheme();
+  const {
+    currency, currencySymbol, notificationsEnabled, budgetAlerts, theme, updateSetting,
+  } = useSettingsStore();
+  const { isPremium } = useSubscriptionStore();
+  const { expenses, clearAllExpenses } = useExpenseStore();
+  const { resetCategories } = useCategoryStore();
+  const { clearAllBudgets } = useBudgetStore();
+  const { showConfirm, showSuccess } = useDialog();
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
+
+  const styles = useMemo(() => createStyles(colors, borders, typography), [colors, borders, typography]);
+
+  const handleClearData = () => {
+    showConfirm({
+      title: 'Clear All Data',
+      message: 'This will permanently delete all your expenses, categories, and budgets. This action cannot be undone.',
+      confirmLabel: 'Clear All',
+      onConfirm: () => {
+        clearAllExpenses();
+        clearAllBudgets();
+        resetCategories();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        showSuccess('Data Cleared', 'All data has been removed.');
+      },
+    });
+  };
+
+  return (
+    <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <Text style={styles.screenTitle}>Settings</Text>
+
+      {/* Premium Banner */}
+      {!isPremium && (
+        <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 400 }}>
+          <NeuCard color={colors.primary} style={styles.premiumBanner} onPress={() => router.push('/paywall')}>
+            <View style={styles.premiumContent}>
+              <View style={[styles.premiumIconWrap, { backgroundColor: colors.onPrimary + '15' }]}>
+                <Ionicons name="star" size={24} color={colors.onPrimary} />
+              </View>
+              <View style={styles.premiumText}>
+                <Text style={[styles.premiumTitle, { color: colors.onPrimary }]}>Upgrade to Pro</Text>
+                <Text style={[styles.premiumDesc, { color: colors.onPrimary }]}>Unlock all features & remove ads</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={colors.onPrimary} />
+            </View>
+          </NeuCard>
+        </MotiView>
+      )}
+
+      {/* Appearance Section */}
+      <Text style={styles.sectionTitle}>Appearance</Text>
+      <NeuCard>
+        <Text style={styles.settingLabel}>Theme</Text>
+        <View style={styles.chipRow}>
+          {(['light', 'dark', 'system'] as const).map((t) => (
+            <NeuChip
+              key={t}
+              label={t.charAt(0).toUpperCase() + t.slice(1)}
+              selected={theme === t}
+              onPress={() => updateSetting('theme', t)}
+              color={colors.primary}
+            />
+          ))}
+        </View>
+      </NeuCard>
+
+      {/* General */}
+      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 100 }}>
+        <Text style={styles.sectionTitle}>General</Text>
+        <NeuCard padded={false}>
+          <SettingsRow
+            icon="cash-outline"
+            label="Currency"
+            value={`${currencySymbol} ${currency}`}
+            onPress={() => setShowCurrencyPicker(!showCurrencyPicker)}
+            colors={colors}
+            styles={styles}
+          />
+          {showCurrencyPicker && (
+            <View style={styles.currencyPicker}>
+              {CURRENCIES.map((c) => (
+                <Pressable
+                  key={c.code}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    updateSetting('currency', c.code);
+                    updateSetting('currencySymbol', c.symbol);
+                    setShowCurrencyPicker(false);
+                  }}
+                  style={[styles.currencyItem, currency === c.code && styles.currencyItemSelected]}
+                >
+                  <Text style={styles.currencySymbol}>{c.symbol}</Text>
+                  <Text style={styles.currencyCode}>{c.code}</Text>
+                  <Text style={styles.currencyName}>{c.name}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+          <View style={styles.divider} />
+          <SettingsRow icon="folder-outline" label="Categories" onPress={() => router.push('/category')} color={colors.purple} colors={colors} styles={styles} />
+          <View style={styles.divider} />
+          <SettingsRow icon="flag-outline" label="Budgets" onPress={() => {
+            if (!isPremium) { router.push('/paywall'); return; }
+            router.push('/budget');
+          }} color={colors.green} colors={colors} styles={styles} />
+        </NeuCard>
+      </MotiView>
+
+      {/* Notifications */}
+      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 200 }}>
+        <Text style={styles.sectionTitle}>Notifications</Text>
+        <NeuCard>
+          <NeuSwitch
+            label="Push Notifications"
+            description="Reminders for recurring expenses"
+            value={notificationsEnabled}
+            onValueChange={async (v) => {
+              if (v) {
+                const granted = await requestNotificationPermissions();
+                if (!granted) return;
+                await scheduleRecurringReminders();
+              } else {
+                // Cancel recurring reminders but keep budget alerts if enabled
+                if (!budgetAlerts) await cancelAllNotifications();
+              }
+              updateSetting('notificationsEnabled', v);
+            }}
+          />
+          <NeuSwitch
+            label="Budget Alerts"
+            description="Notify when spending exceeds budget"
+            value={budgetAlerts}
+            onValueChange={async (v) => {
+              if (v) {
+                const granted = await requestNotificationPermissions();
+                if (!granted) return;
+                await scheduleBudgetAlerts();
+              } else {
+                if (!notificationsEnabled) await cancelAllNotifications();
+              }
+              updateSetting('budgetAlerts', v);
+            }}
+          />
+        </NeuCard>
+      </MotiView>
+
+      {/* Data */}
+      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 300 }}>
+        <Text style={styles.sectionTitle}>Data</Text>
+        <NeuCard padded={false}>
+          <SettingsRow
+            icon="share-outline"
+            label="Export Data"
+            value={`${expenses.length} expenses`}
+            onPress={() => {
+              if (!isPremium) { router.push('/paywall'); return; }
+              router.push('/export');
+            }}
+            color={colors.blue}
+            colors={colors}
+            styles={styles}
+          />
+          <View style={styles.divider} />
+          <SettingsRow
+            icon="trash-outline"
+            label="Clear All Data"
+            onPress={handleClearData}
+            showArrow={false}
+            color={colors.secondary}
+            colors={colors}
+            styles={styles}
+          />
+        </NeuCard>
+      </MotiView>
+
+      {/* About */}
+      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 400 }}>
+        <Text style={styles.sectionTitle}>About</Text>
+        <NeuCard padded={false}>
+          <SettingsRow icon="information-circle-outline" label="Version" value="1.0.0" onPress={() => {}} showArrow={false} colors={colors} styles={styles} />
+          <View style={styles.divider} />
+          <SettingsRow icon="document-text-outline" label="Privacy Policy" onPress={() => {
+            // TODO: BEFORE_BUILD — Replace with your privacy policy URL
+            WebBrowser.openBrowserAsync('https://yourwebsite.com/privacy');
+          }} color={colors.accent} colors={colors} styles={styles} />
+          <View style={styles.divider} />
+          <SettingsRow icon="clipboard-outline" label="Terms of Service" onPress={() => {
+            // TODO: BEFORE_BUILD — Replace with your terms of service URL
+            WebBrowser.openBrowserAsync('https://yourwebsite.com/terms');
+          }} color={colors.accent} colors={colors} styles={styles} />
+        </NeuCard>
+      </MotiView>
+
+      {isPremium && (
+        <View style={styles.premiumStatus}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+            <Ionicons name="star" size={18} color={colors.primary} />
+            <Text style={styles.premiumStatusText}>Premium Active</Text>
+          </View>
+        </View>
+      )}
+
+      <View style={{ height: 120 }} />
+    </ScrollView>
+  );
+}
+
+const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: ThemeTypography) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { paddingHorizontal: spacing.xl },
+  screenTitle: { ...typography.h1, marginTop: spacing.md, marginBottom: spacing.lg },
+  sectionTitle: { ...typography.label, color: colors.textSecondary, marginTop: spacing.lg, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 1 },
+  settingLabel: { ...typography.body, fontWeight: '600', marginBottom: spacing.sm },
+  chipRow: { flexDirection: 'row', gap: spacing.sm },
+  premiumBanner: { marginBottom: spacing.sm },
+  premiumContent: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  premiumIconWrap: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.text + '15', alignItems: 'center', justifyContent: 'center' },
+  premiumText: { flex: 1 },
+  premiumTitle: { ...typography.body, fontWeight: '800' },
+  premiumDesc: { ...typography.caption },
+  settingsRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md },
+  settingsIcon: { width: 36, height: 36, borderRadius: borderRadius.sm, alignItems: 'center', justifyContent: 'center' },
+  settingsEmoji: { fontSize: 18 },
+  settingsLabel: { ...typography.body, fontWeight: '600', flex: 1 },
+  settingsRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  settingsValue: { ...typography.bodySmall, color: colors.textSecondary },
+  divider: { height: 1, backgroundColor: colors.border + '15', marginHorizontal: spacing.lg },
+  currencyPicker: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
+  currencyItem: {
+    flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm, paddingHorizontal: spacing.md,
+    gap: spacing.sm, borderRadius: borderRadius.sm, marginBottom: 4,
+  },
+  currencyItemSelected: { backgroundColor: colors.primary + '20' },
+  currencySymbol: { fontSize: 18, fontWeight: '700', minWidth: 28, textAlign: 'center', color: colors.text },
+  currencyCode: { fontSize: 14, fontWeight: '700', width: 36, color: colors.text },
+  currencyName: { ...typography.bodySmall, flex: 1 },
+  premiumStatus: { alignItems: 'center', marginTop: spacing.xl },
+  premiumStatusText: { ...typography.body, fontWeight: '700', color: colors.primary },
+});
