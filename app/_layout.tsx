@@ -15,6 +15,7 @@ import { initializeAds, loadInterstitial } from '@/services/ads';
 import { initializeSubscriptions } from '@/services/subscriptions';
 import { refreshNotifications } from '@/services/notifications';
 import { processRecurringExpenses } from '@/services/recurring';
+import AnimatedSplash from '@/components/AnimatedSplash';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { DialogProvider } from '@/contexts/DialogContext';
 import { ThemeProvider, useTheme } from '@/lib/ThemeContext';
@@ -58,6 +59,7 @@ function RootLayoutInner() {
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
+  const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
   useEffect(() => {
     async function bootstrap() {
@@ -95,6 +97,10 @@ export default function RootLayout() {
         <ActivityIndicator size="large" color={lightColors.primary} />
       </View>
     );
+  }
+
+  if (showAnimatedSplash) {
+    return <AnimatedSplash onFinish={() => setShowAnimatedSplash(false)} />;
   }
 
   return (

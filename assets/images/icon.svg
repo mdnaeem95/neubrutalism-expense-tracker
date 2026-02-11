@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Background: yellow rounded rect -->
+  <rect x="0" y="0" width="1024" height="1024" rx="220" ry="220" fill="#FFD60A"/>
+
+  <!-- Neubrutalism offset shadow for the book -->
+  <rect x="280" y="260" width="504" height="544" rx="32" fill="#1A1A2E"/>
+
+  <!-- Book / Ledger shape -->
+  <rect x="260" y="240" width="504" height="544" rx="32" fill="#FFFFFF" stroke="#1A1A2E" stroke-width="18"/>
+
+  <!-- Center spine line (dashed) -->
+  <line x1="512" y1="270" x2="512" y2="754" stroke="#1A1A2E" stroke-width="8" stroke-dasharray="18,12"/>
+
+  <!-- Ruled lines on left page -->
+  <line x1="300" y1="350" x2="480" y2="350" stroke="#1A1A2E" stroke-width="6" opacity="0.2"/>
+  <line x1="300" y1="410" x2="480" y2="410" stroke="#1A1A2E" stroke-width="6" opacity="0.2"/>
+  <line x1="300" y1="470" x2="480" y2="470" stroke="#1A1A2E" stroke-width="6" opacity="0.2"/>
+  <line x1="300" y1="530" x2="480" y2="530" stroke="#1A1A2E" stroke-width="6" opacity="0.2"/>
+  <line x1="300" y1="590" x2="460" y2="590" stroke="#1A1A2E" stroke-width="6" opacity="0.2"/>
+  <line x1="300" y1="650" x2="440" y2="650" stroke="#1A1A2E" stroke-width="6" opacity="0.2"/>
+
+  <!-- Small "check" marks on left page lines -->
+  <circle cx="310" cy="350" r="8" fill="#4ECDC4"/>
+  <circle cx="310" cy="410" r="8" fill="#4ECDC4"/>
+  <circle cx="310" cy="470" r="8" fill="#FF6B6B"/>
+  <circle cx="310" cy="530" r="8" fill="#4ECDC4"/>
+  <circle cx="310" cy="590" r="8" fill="#FF6B6B"/>
+
+  <!-- Dollar sign on right page -->
+  <text x="632" y="540" font-family="Arial Black, Impact, sans-serif" font-weight="900"
+        font-size="300" fill="#1A1A2E" text-anchor="middle" dominant-baseline="central">$</text>
+</svg>
