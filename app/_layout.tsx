@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts, SpaceMono_400Regular, SpaceMono_700Bold } from '@expo-google-fonts/space-mono';
@@ -20,7 +19,6 @@ import AnimatedSplash from '@/components/AnimatedSplash';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { DialogProvider } from '@/contexts/DialogContext';
 import { ThemeProvider, useTheme } from '@/lib/ThemeContext';
-import { lightColors } from '@/lib/theme';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -60,12 +58,17 @@ function RootLayoutInner() {
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
-  const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
+  const [animationDone, setAnimationDone] = useState(false);
 
   const [fontsLoaded] = useFonts({
     SpaceMono_400Regular,
     SpaceMono_700Bold,
   });
+
+  // Hide native splash immediately so AnimatedSplash takes over
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
 
   useEffect(() => {
     async function bootstrap() {
@@ -90,23 +93,15 @@ export default function RootLayout() {
         console.error('Bootstrap error:', error);
       } finally {
         setIsReady(true);
-        await SplashScreen.hideAsync();
       }
     }
 
     bootstrap();
   }, []);
 
-  if (!isReady || !fontsLoaded) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={lightColors.primary} />
-      </View>
-    );
-  }
-
-  if (showAnimatedSplash) {
-    return <AnimatedSplash onFinish={() => setShowAnimatedSplash(false)} />;
+  // Show AnimatedSplash until both animation and bootstrap are done
+  if (!animationDone || !isReady || !fontsLoaded) {
+    return <AnimatedSplash onFinish={() => setAnimationDone(true)} />;
   }
 
   return (
@@ -121,12 +116,3 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: lightColors.background,
-  },
-});
