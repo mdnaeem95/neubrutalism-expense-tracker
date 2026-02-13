@@ -1,6 +1,6 @@
 import React, { Component, ErrorInfo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { lightColors, spacing } from '@/lib/theme';
 import { NeuButton } from '@/components/ui';
 
@@ -36,7 +36,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       return (
         <View style={styles.container}>
           <View style={styles.iconWrap}>
-            <Ionicons name="alert-circle-outline" size={48} color={lightColors.secondary} />
+            <MaterialCommunityIcons name="alert-circle-outline" size={48} color={lightColors.secondary} />
           </View>
           <Text style={styles.title}>Oops! Something went wrong</Text>
           <Text style={styles.message}>
@@ -73,12 +73,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   title: {
-    fontSize: 24, fontWeight: '700' as const, lineHeight: 32, color: lightColors.text,
+    fontSize: 24, fontWeight: '700' as const, lineHeight: 32, color: lightColors.text, fontFamily: 'SpaceMono_700Bold',
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   message: {
-    fontSize: 14, fontWeight: '500' as const, lineHeight: 20, color: lightColors.textSecondary,
+    fontSize: 14, fontWeight: '400' as const, lineHeight: 20, color: lightColors.textSecondary, fontFamily: 'SpaceMono_400Regular',
     textAlign: 'center',
     marginBottom: spacing['2xl'],
   },

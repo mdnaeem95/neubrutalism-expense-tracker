@@ -8,7 +8,7 @@ import { useExpenseStore } from '@/stores/useExpenseStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import type { ChartPeriod, SpendingByCategory } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { eachDayOfInterval, endOfMonth, endOfWeek, endOfYear, format, startOfMonth, startOfWeek, startOfYear, subMonths } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
@@ -155,7 +155,7 @@ export default function AnalyticsScreen() {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <Text style={styles.screenTitle}>Analytics</Text>
         <NeuEmptyState
-          icon="bar-chart-outline"
+          icon="chart-bar"
           title="No data yet"
           description="Add some expenses to see your spending analytics"
           actionTitle="Add Expense"
@@ -208,7 +208,7 @@ export default function AnalyticsScreen() {
             <View style={[styles.changeBadge, {
               backgroundColor: monthlyComparison.percentChange <= 0 ? colors.cardTintGreen : colors.cardTintRed,
             }]}>
-              <Ionicons
+              <MaterialCommunityIcons
                 name={monthlyComparison.percentChange <= 0 ? 'trending-down' : 'trending-up'}
                 size={14}
                 color={monthlyComparison.percentChange <= 0 ? colors.green : colors.secondary}
@@ -307,7 +307,7 @@ export default function AnalyticsScreen() {
             >
               <View style={styles.categoryRow}>
                 <View style={[styles.catDot, { backgroundColor: cat.categoryColor }]} />
-                <Ionicons name={cat.categoryIcon as any} size={20} color={cat.categoryColor} />
+                <MaterialCommunityIcons name={cat.categoryIcon as any} size={20} color={cat.categoryColor} />
                 <View style={styles.catInfo}>
                   <Text style={styles.catName}>{cat.categoryName}</Text>
                   <Text style={styles.catCount}>{cat.count} transactions</Text>
@@ -329,7 +329,7 @@ export default function AnalyticsScreen() {
           <View style={styles.insightsGrid}>
             <MotiView from={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 400, delay: 300 }} style={styles.insightCell}>
               <NeuCard shadow="small" color={colors.cardTintRed} style={styles.insightCard}>
-                <Ionicons name="flame-outline" size={22} color={colors.secondary} />
+                <MaterialCommunityIcons name="fire" size={22} color={colors.secondary} />
                 <Text style={styles.insightLabel}>Biggest Expense</Text>
                 <Text style={styles.insightValue}>{formatAmount(smartInsights.biggestExpense.amount)}</Text>
                 <Text style={styles.insightSub} numberOfLines={1}>{smartInsights.biggestExpense.description}</Text>
@@ -337,7 +337,7 @@ export default function AnalyticsScreen() {
             </MotiView>
             <MotiView from={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 400, delay: 380 }} style={styles.insightCell}>
               <NeuCard shadow="small" color={colors.cardTintBlue} style={styles.insightCard}>
-                <Ionicons name="calendar-outline" size={22} color={colors.blue} />
+                <MaterialCommunityIcons name="calendar" size={22} color={colors.blue} />
                 <Text style={styles.insightLabel}>Busiest Day</Text>
                 <Text style={styles.insightValue}>
                   {smartInsights.busiestDay.date ? format(new Date(smartInsights.busiestDay.date), 'MMM d') : '-'}
@@ -347,7 +347,7 @@ export default function AnalyticsScreen() {
             </MotiView>
             <MotiView from={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 400, delay: 460 }} style={styles.insightCell}>
               <NeuCard shadow="small" color={colors.cardTintGreen} style={styles.insightCard}>
-                <Ionicons name="podium-outline" size={22} color={colors.green} />
+                <MaterialCommunityIcons name="podium" size={22} color={colors.green} />
                 <Text style={styles.insightLabel}>Most Active</Text>
                 <Text style={styles.insightValue} numberOfLines={1}>{smartInsights.mostActive?.categoryName || '-'}</Text>
                 <Text style={styles.insightSub}>{smartInsights.mostActive ? `${smartInsights.mostActive.count} txns` : ''}</Text>
@@ -355,7 +355,7 @@ export default function AnalyticsScreen() {
             </MotiView>
             <MotiView from={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 400, delay: 540 }} style={styles.insightCell}>
               <NeuCard shadow="small" color={colors.cardTintPurple} style={styles.insightCard}>
-                <Ionicons name="calculator-outline" size={22} color={colors.purple} />
+                <MaterialCommunityIcons name="calculator" size={22} color={colors.purple} />
                 <Text style={styles.insightLabel}>Avg Transaction</Text>
                 <Text style={styles.insightValue}>{formatAmount(smartInsights.avgTransaction)}</Text>
                 <Text style={styles.insightSub}>per expense</Text>
@@ -380,7 +380,7 @@ export default function AnalyticsScreen() {
                 <View style={styles.pmRow}>
                   <View style={styles.pmInfo}>
                     <View style={styles.pmIconWrap}>
-                      <Ionicons name={pm.icon as any} size={18} color={colors.text} />
+                      <MaterialCommunityIcons name={pm.icon as any} size={18} color={colors.text} />
                     </View>
                     <Text style={styles.pmLabel}>{pm.label}</Text>
                   </View>
@@ -414,7 +414,7 @@ export default function AnalyticsScreen() {
               <View key={budget.id} style={styles.budgetItem}>
                 <View style={styles.budgetHeader}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Ionicons name={(budget.categoryIcon || 'cube-outline') as any} size={16} color={budget.categoryColor || colors.text} />
+                  <MaterialCommunityIcons name={(budget.categoryIcon || 'cube-outline') as any} size={16} color={budget.categoryColor || colors.text} />
                   <Text style={styles.budgetCat}>{budget.categoryName}</Text>
                 </View>
                   <Text style={styles.budgetAmount}>
@@ -436,7 +436,7 @@ export default function AnalyticsScreen() {
       {!isPremium && (
         <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'timing', duration: 500, delay: 400 }}>
           <NeuCard color={colors.cardTintPurple} style={styles.premiumGate}>
-            <Ionicons name="lock-closed-outline" size={40} color={colors.purple} />
+            <MaterialCommunityIcons name="lock-outline" size={40} color={colors.purple} />
             <Text style={styles.premiumTitle}>Unlock Full Analytics</Text>
             <Text style={styles.premiumDesc}>
               Get budget tracking, detailed insights, and export capabilities
@@ -454,7 +454,7 @@ export default function AnalyticsScreen() {
 const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: ThemeTypography) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: spacing.xl },
-  screenTitle: { ...typography.h1, marginTop: spacing.md, marginBottom: spacing.lg },
+  screenTitle: { ...typography.h1, marginTop: spacing.md, marginBottom: spacing.lg, paddingHorizontal: spacing.xl },
   periodRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   totalCard: { marginBottom: spacing.lg },
   totalLabel: { ...typography.caption, marginBottom: spacing.xs },
@@ -470,10 +470,10 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   barContainer: { flex: 1, alignItems: 'center' },
   barWrapper: { width: '80%', height: 100, justifyContent: 'flex-end' },
   bar: { width: '100%', borderRadius: 4, borderWidth: 1, borderColor: colors.border, minHeight: 2 },
-  barLabel: { fontSize: 8, fontWeight: '600', color: colors.textSecondary, marginTop: 4 },
+  barLabel: { fontSize: 8, fontWeight: '600', color: colors.textSecondary, marginTop: 4, fontFamily: 'SpaceMono_400Regular' },
   sectionTitle: { ...typography.h3, marginBottom: spacing.md },
   breakdownCard: { marginBottom: spacing.lg },
-  pieRow: { flexDirection: 'row', height: 24, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.lg, borderWidth: 2, borderColor: colors.border },
+  pieRow: { flexDirection: 'row', height: 24, borderRadius: 12, overflow: 'hidden', marginBottom: spacing.lg, borderWidth: 2.5, borderColor: colors.border },
   pieSegment: { flexDirection: 'row' },
   pieBar: { height: '100%' },
   categoryRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm, gap: spacing.sm },
@@ -491,8 +491,8 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   budgetAmount: { ...typography.bodySmall, fontWeight: '600' },
   comparisonCard: { marginBottom: spacing.lg },
   comparisonHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg },
-  changeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderWidth: 2, borderColor: colors.border, borderRadius: borderRadius.sm },
-  changeText: { fontSize: 12, fontWeight: '700' },
+  changeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderWidth: 2.5, borderColor: colors.border, borderRadius: borderRadius.sm },
+  changeText: { fontSize: 12, fontWeight: '700', fontFamily: 'SpaceMono_700Bold' },
   comparisonBars: { flexDirection: 'row', justifyContent: 'center', gap: spacing['3xl'], alignItems: 'flex-end' },
   comparisonBarCol: { alignItems: 'center', width: 80 },
   comparisonBarTrack: { width: 48, height: 100, justifyContent: 'flex-end', borderWidth: borders.width, borderColor: colors.border, borderRadius: borderRadius.sm, overflow: 'hidden', backgroundColor: colors.background },
@@ -508,7 +508,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   paymentCard: { marginBottom: spacing.lg },
   pmRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
   pmInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  pmIconWrap: { width: 32, height: 32, borderRadius: borderRadius.sm, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  pmIconWrap: { width: 32, height: 32, borderRadius: borderRadius.sm, borderWidth: 2.5, borderColor: colors.border, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
   pmLabel: { ...typography.body, fontWeight: '600' },
   pmAmountCol: { alignItems: 'flex-end' },
   pmAmount: { ...typography.body, fontWeight: '700' },

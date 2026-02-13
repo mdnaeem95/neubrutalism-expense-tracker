@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useDialog } from '@/contexts/DialogContext';
 import { useExpenseStore } from '@/stores/useExpenseStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { NeuCard, NeuButton, NeuIconButton } from '@/components/ui';
 import { exportToCSV } from '@/services/export';
 import { spacing } from '@/lib/theme';
@@ -29,7 +29,7 @@ export default function ExportScreen() {
       showDialog({
         title: 'No Data',
         message: 'There are no expenses to export.',
-        icon: 'information-circle-outline',
+        icon: 'information-outline',
         iconColor: colors.blue,
         buttons: [{ text: 'OK', style: 'default' }],
       });
@@ -56,7 +56,7 @@ export default function ExportScreen() {
 
       <NeuCard color={colors.cardTintBlue} style={styles.infoCard}>
         <View style={styles.infoIconWrap}>
-          <Ionicons name="share-outline" size={36} color={colors.blue} />
+          <MaterialCommunityIcons name="export-variant" size={36} color={colors.blue} />
         </View>
         <Text style={styles.infoTitle}>Export to CSV</Text>
         <Text style={styles.infoDesc}>

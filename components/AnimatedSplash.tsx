@@ -93,9 +93,9 @@ const styles = StyleSheet.create({
   iconCard: {
     width: ICON_SIZE,
     height: ICON_SIZE,
-    borderRadius: 28,
+    borderRadius: 12,
     overflow: 'hidden',
-    borderWidth: 3,
+    borderWidth: 2.5,
     borderColor: '#1A1A2E',
     shadowColor: '#1A1A2E',
     shadowOffset: { width: 4, height: 4 },
@@ -112,11 +112,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#1A1A2E',
     letterSpacing: -1,
+    fontFamily: 'SpaceMono_700Bold',
   },
   tagline: {
     fontSize: 16,
     fontWeight: '600',
     color: '#9CA3AF',
     marginTop: spacing.sm,
+    fontFamily: 'SpaceMono_400Regular',
   },
 });

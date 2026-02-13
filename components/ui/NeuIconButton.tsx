@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { borderRadius } from '@/lib/theme';
 import type { ThemeColors, ThemeBorders } from '@/lib/theme';
 import { useTheme } from '@/lib/ThemeContext';
@@ -14,7 +14,7 @@ import { useTheme } from '@/lib/ThemeContext';
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface NeuIconButtonProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
   onPress: () => void;
   size?: number;
   color?: string;
@@ -71,7 +71,7 @@ export default function NeuIconButton({
       ]}
       accessibilityRole="button"
     >
-      <Ionicons name={icon} size={size} color={resolvedColor} />
+      <MaterialCommunityIcons name={icon} size={size} color={resolvedColor} />
     </AnimatedPressable>
   );
 }
@@ -83,7 +83,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders) =>
       height: 44,
       alignItems: 'center',
       justifyContent: 'center',
-      borderWidth: borders.width,
+      borderWidth: borders.medium,
       borderColor: borders.color,
       borderRadius: borderRadius.md,
       shadowColor: colors.border,

@@ -153,7 +153,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders) =>
       elevation: 0,
     },
     bordered: {
-      borderWidth: borders.width,
+      borderWidth: borders.medium,
       borderColor: borders.color,
       borderRadius: borderRadius.md,
     },
@@ -169,5 +169,8 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders) =>
     },
     text: {
       fontWeight: '700',
+      fontFamily: 'SpaceMono_700Bold',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
     },
   });

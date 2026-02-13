@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format, subMonths } from 'date-fns';
 import { MotiView } from 'moti';
 import { useExpenseStore } from '@/stores/useExpenseStore';
@@ -84,7 +84,7 @@ export default function DashboardScreen() {
           </View>
           {!isPremium && (
             <Pressable onPress={() => router.push('/paywall')} style={styles.premiumBadge}>
-              <Ionicons name="star" size={12} color={colors.text} />
+              <MaterialCommunityIcons name="star" size={12} color={colors.text} />
               <Text style={styles.premiumText}> PRO</Text>
             </Pressable>
           )}
@@ -97,7 +97,7 @@ export default function DashboardScreen() {
           <Text style={[styles.totalLabel, { color: colors.onPrimary }]}>This Month</Text>
           <Text style={[styles.totalAmount, { color: colors.onPrimary }]}>{formatAmount(currentMonthTotal)}</Text>
           <View style={styles.comparisonRow}>
-            <Ionicons name={percentChange >= 0 ? 'trending-up' : 'trending-down'} size={16} color={colors.onPrimary} />
+            <MaterialCommunityIcons name={percentChange >= 0 ? 'trending-up' : 'trending-down'} size={16} color={colors.onPrimary} />
             <Text style={[styles.comparisonText, { color: colors.onPrimary }]}>
               {percentChange >= 0 ? '+' : ''}{percentChange.toFixed(1)}% vs last month
             </Text>
@@ -176,7 +176,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   greeting: { ...typography.h2 },
   date: { ...typography.bodySmall, marginTop: 2 },
   premiumBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: borderRadius.full, borderWidth: 2, borderColor: colors.border },
-  premiumText: { fontSize: 12, fontWeight: '800', color: colors.text },
+  premiumText: { fontSize: 12, fontWeight: '800', color: colors.text, fontFamily: 'SpaceMono_700Bold' },
   totalCard: { marginBottom: spacing.lg },
   totalLabel: { ...typography.caption, marginBottom: spacing.xs },
   totalAmount: { ...typography.amount },
@@ -190,8 +190,8 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   seeAll: { ...typography.label, color: colors.blue },
   categoryScroll: { paddingBottom: spacing.lg, gap: spacing.md },
   categoryCard: { width: 120, alignItems: 'center', paddingVertical: spacing.md, paddingHorizontal: spacing.sm, gap: spacing.xs },
-  catName: { fontSize: 12, fontWeight: '600', color: colors.text, textAlign: 'center' },
-  catAmount: { fontSize: 14, fontWeight: '800', color: colors.text },
+  catName: { fontSize: 12, fontWeight: '600', color: colors.text, textAlign: 'center', fontFamily: 'SpaceMono_400Regular' },
+  catAmount: { fontSize: 14, fontWeight: '800', color: colors.text, fontFamily: 'SpaceMono_700Bold' },
   transactionCard: { marginBottom: spacing.lg },
   expenseRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md },
   expenseInfo: { flex: 1 },
@@ -199,6 +199,6 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   expenseDate: { ...typography.caption, marginTop: 2 },
   expenseAmount: { ...typography.body, fontWeight: '800', color: colors.secondary },
   divider: { height: 1, backgroundColor: colors.border + '20', marginHorizontal: spacing.lg },
-  adBanner: { height: 60, backgroundColor: colors.surface, borderWidth: borders.width, borderColor: borders.color, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center', marginTop: spacing.md },
+  adBanner: { height: 60, backgroundColor: colors.surface, borderWidth: borders.medium, borderColor: borders.color, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center', marginTop: spacing.md },
   adText: { ...typography.caption, color: colors.textLight },
 });

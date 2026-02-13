@@ -62,7 +62,7 @@ export default function NeuProgressBar({
             styles.fill,
             {
               backgroundColor: isOverBudget ? colors.error : resolvedColor,
-              height: height - borders.width * 2,
+              height: height - borders.medium * 2,
             },
             animatedWidth,
           ]}
@@ -92,7 +92,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
     },
     track: {
       backgroundColor: colors.background,
-      borderWidth: borders.width,
+      borderWidth: borders.medium,
       borderColor: borders.color,
       borderRadius: borderRadius.full,
       overflow: 'hidden',

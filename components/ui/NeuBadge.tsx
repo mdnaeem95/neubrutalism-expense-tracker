@@ -46,7 +46,7 @@ const createStyles = (colors: ThemeColors) =>
     badge: {
       paddingHorizontal: spacing.sm,
       paddingVertical: spacing.xs,
-      borderWidth: 2,
+      borderWidth: 2.5,
       borderColor: colors.border,
       borderRadius: borderRadius.sm,
     },
@@ -58,6 +58,9 @@ const createStyles = (colors: ThemeColors) =>
       fontSize: 12,
       fontWeight: '700',
       textAlign: 'center',
+      fontFamily: 'SpaceMono_700Bold',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
     },
     labelSmall: {
       fontSize: 10,

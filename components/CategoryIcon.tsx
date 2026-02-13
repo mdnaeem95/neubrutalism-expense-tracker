@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { borderRadius } from '@/lib/theme';
 
 interface CategoryIconProps {
@@ -31,7 +31,7 @@ export default function CategoryIcon({
         style,
       ]}
     >
-      <Ionicons name={icon as any} size={size} color={color} />
+      <MaterialCommunityIcons name={icon as any} size={size} color={color} />
     </View>
   );
 }

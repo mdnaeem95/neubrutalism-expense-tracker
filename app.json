@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFBF0"
+      "backgroundColor": "#FFF8E7"
     },
     "ios": {
       "supportsTablet": true,
@@ -26,7 +26,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#FFD60A"
+        "backgroundColor": "#FF6B9D"
       },
       "package": "com.ledgr.app",
       "edgeToEdgeEnabled": true,
@@ -56,7 +56,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#FFD60A"
+          "color": "#FF6B9D"
         }
       ],
       "@react-native-community/datetimepicker"

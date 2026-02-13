@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MotiView } from 'moti';
 import * as Haptics from 'expo-haptics';
 import { useDialog } from '@/contexts/DialogContext';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import { NeuCard, NeuButton, NeuIconButton } from '@/components/ui';
@@ -48,7 +48,7 @@ export default function CategoryManagementScreen() {
       showDialog({
         title: 'Cannot Delete',
         message: 'Default categories cannot be deleted.',
-        icon: 'information-circle-outline',
+        icon: 'information-outline',
         iconColor: colors.blue,
         buttons: [{ text: 'OK', style: 'default' }],
       });
@@ -67,10 +67,10 @@ export default function CategoryManagementScreen() {
   return (
     <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.headerRow}>
-        <NeuIconButton icon="arrow-back" onPress={() => router.back()} />
+        <NeuIconButton icon="arrow-left" onPress={() => router.back()} />
         <Text style={styles.headerTitle}>Categories</Text>
         <NeuIconButton
-          icon="add"
+          icon="plus"
           onPress={() => {
             if (!isPremium && categories.length >= 8) {
               router.push('/paywall');
@@ -90,7 +90,7 @@ export default function CategoryManagementScreen() {
             <Text style={styles.addTitle}>New Category</Text>
             <View style={styles.nameRow}>
               <View style={[styles.previewIconWrap, { backgroundColor: newColor + '20' }]}>
-                <Ionicons name={newIcon as any} size={22} color={newColor} />
+                <MaterialCommunityIcons name={newIcon as any} size={22} color={newColor} />
               </View>
               <TextInput
                 style={styles.nameInput}
@@ -110,7 +110,7 @@ export default function CategoryManagementScreen() {
                   onPress={() => setNewIcon(iconName)}
                   style={[styles.iconItem, newIcon === iconName && styles.iconSelected]}
                 >
-                  <Ionicons name={iconName as any} size={20} color={newIcon === iconName ? newColor : colors.textSecondary} />
+                  <MaterialCommunityIcons name={iconName as any} size={20} color={newIcon === iconName ? newColor : colors.textSecondary} />
                 </Pressable>
               ))}
             </View>
@@ -154,7 +154,7 @@ export default function CategoryManagementScreen() {
               <View style={[styles.colorDot, { backgroundColor: cat.color }]} />
               {cat.isDefault === 0 && (
                 <NeuIconButton
-                  icon="trash-outline"
+                  icon="delete-outline"
                   onPress={() => handleDelete(cat.id, cat.name, cat.isDefault)}
                   size={16}
                   bgColor={colors.secondary + '20'}
@@ -170,7 +170,7 @@ export default function CategoryManagementScreen() {
       {!isPremium && categories.length >= 8 && (
         <NeuCard color={colors.cardTintPurple} style={styles.limitCard}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <Ionicons name="star" size={16} color={colors.primary} />
+            <MaterialCommunityIcons name="star" size={16} color={colors.primary} />
             <Text style={styles.limitText}>Upgrade to Pro for unlimited categories</Text>
           </View>
           <NeuButton title="Upgrade" onPress={() => router.push('/paywall')} variant="primary" size="sm" />
@@ -192,23 +192,23 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   previewIconWrap: { width: 40, height: 40, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center' },
   nameInput: {
-    flex: 1, ...typography.body, borderWidth: 2, borderColor: colors.border, borderRadius: borderRadius.md,
+    flex: 1, ...typography.body, borderWidth: 2.5, borderColor: colors.border, borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surface,
   },
   pickerLabel: { ...typography.label, marginBottom: spacing.sm },
   iconGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
-  iconItem: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: borderRadius.sm, borderWidth: 2, borderColor: 'transparent' },
+  iconItem: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: borderRadius.sm, borderWidth: 2.5, borderColor: 'transparent' },
   iconSelected: { borderColor: colors.border, backgroundColor: colors.primary + '20' },
   colorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-  colorItem: { width: 32, height: 32, borderRadius: borderRadius.sm, borderWidth: 2, borderColor: 'transparent' },
-  colorSelected: { borderColor: colors.border, borderWidth: 3 },
+  colorItem: { width: 32, height: 32, borderRadius: borderRadius.sm, borderWidth: 2.5, borderColor: 'transparent' },
+  colorSelected: { borderColor: colors.border, borderWidth: 2.5 },
   addActions: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'flex-end' },
   catCard: { marginBottom: spacing.sm },
   catRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   catInfo: { flex: 1 },
   catName: { ...typography.body, fontWeight: '700' },
   catDefault: { ...typography.caption, color: colors.textLight },
-  colorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: colors.border },
+  colorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2.5, borderColor: colors.border },
   deleteBtn: { width: 36, height: 36 },
   limitCard: { alignItems: 'center', marginTop: spacing.md, gap: spacing.md },
   limitText: { ...typography.bodySmall, fontWeight: '600' },

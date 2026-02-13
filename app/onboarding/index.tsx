@@ -3,7 +3,7 @@ import type { ThemeColors, ThemeTypography } from '@/lib/theme';
 import { spacing } from '@/lib/theme';
 import { useTheme } from '@/lib/ThemeContext';
 import { useSettingsStore } from '@/stores/useSettingsStore';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
@@ -28,7 +28,7 @@ function getOnboardingSteps(colors: ThemeColors) {
       color: colors.accent,
     },
     {
-      icon: 'bar-chart-outline' as const,
+      icon: 'chart-bar' as const,
       title: 'Understand Your Spending',
       description: 'Beautiful charts and analytics help you visualize spending patterns and make smarter decisions.',
       color: colors.secondary,
@@ -77,7 +77,7 @@ export default function OnboardingScreen() {
         transition={{ type: 'spring', damping: 20, stiffness: 150 }}
       >
         <NeuCard style={styles.iconCard}>
-          <Ionicons name={item.icon} size={56} color={item.color} />
+          <MaterialCommunityIcons name={item.icon} size={56} color={item.color} />
         </NeuCard>
       </MotiView>
 
@@ -157,10 +157,10 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
   flatList: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing['3xl'] },
   iconCard: { width: 140, height: 140, alignItems: 'center', justifyContent: 'center', marginBottom: spacing['3xl'] },
-  /* icon style removed - now uses Ionicons directly */
+  /* icon style removed - now uses MaterialCommunityIcons directly */
   title: { ...typography.h1, textAlign: 'center', marginBottom: spacing.md },
   description: { ...typography.body, textAlign: 'center', color: colors.textSecondary, lineHeight: 24 },
   footer: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: spacing.sm },
-  dot: { height: 10, borderRadius: 5, borderWidth: 2, borderColor: colors.border },
+  dot: { height: 10, borderRadius: 5, borderWidth: 2.5, borderColor: colors.border },
 });

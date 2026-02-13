@@ -7,7 +7,7 @@ import { useBudgetStore } from '@/stores/useBudgetStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import type { BudgetPeriod } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
@@ -65,9 +65,9 @@ export default function BudgetManagementScreen() {
   return (
     <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.headerRow}>
-        <NeuIconButton icon="arrow-back" onPress={() => router.back()} />
+        <NeuIconButton icon="arrow-left" onPress={() => router.back()} />
         <Text style={styles.headerTitle}>Budgets</Text>
-        <NeuIconButton icon="add" onPress={() => setShowAdd(!showAdd)} bgColor={colors.primary} color={colors.onPrimary} />
+        <NeuIconButton icon="plus" onPress={() => setShowAdd(!showAdd)} bgColor={colors.primary} color={colors.onPrimary} />
       </View>
 
       {/* Overall Budget */}
@@ -125,7 +125,7 @@ export default function BudgetManagementScreen() {
                 onPress={() => setBudgetCategory(null)}
                 style={[styles.catItem, budgetCategory === null && styles.catItemSelected]}
               >
-                <Ionicons name="globe-outline" size={20} color={colors.accent} />
+                <MaterialCommunityIcons name="earth" size={20} color={colors.accent} />
                 <Text style={styles.catItemName}>Overall</Text>
               </Pressable>
               {categoriesWithoutBudget.map((cat) => (
@@ -134,7 +134,7 @@ export default function BudgetManagementScreen() {
                   onPress={() => setBudgetCategory(cat.id)}
                   style={[styles.catItem, budgetCategory === cat.id && { backgroundColor: cat.color + '30', borderColor: cat.color }]}
                 >
-                  <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+                  <MaterialCommunityIcons name={cat.icon as any} size={20} color={cat.color} />
                   <Text style={styles.catItemName} numberOfLines={1}>{cat.name}</Text>
                 </Pressable>
               ))}
@@ -160,13 +160,13 @@ export default function BudgetManagementScreen() {
             <View style={styles.budgetHeader}>
               <View style={styles.budgetInfo}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                  <Ionicons name={(budget.categoryIcon || 'globe-outline') as any} size={16} color={budget.categoryColor || colors.accent} />
+                  <MaterialCommunityIcons name={(budget.categoryIcon || 'earth') as any} size={16} color={budget.categoryColor || colors.accent} />
                   <Text style={styles.budgetCatName}>{budget.categoryName}</Text>
                 </View>
                 <Text style={styles.budgetPeriod}>{budget.period}</Text>
               </View>
               <NeuIconButton
-                icon="trash-outline"
+                icon="delete-outline"
                 onPress={() => handleDelete(budget.id)}
                 size={16}
                 bgColor={colors.secondary + '20'}
@@ -192,7 +192,7 @@ export default function BudgetManagementScreen() {
       {budgets.length === 0 && !showAdd && (
         <NeuCard color={colors.cardTintTeal} style={styles.emptyCard}>
           <View style={styles.emptyIconWrap}>
-            <Ionicons name="flag-outline" size={36} color={colors.accent} />
+            <MaterialCommunityIcons name="flag-outline" size={36} color={colors.accent} />
           </View>
           <Text style={styles.emptyTitle}>No budgets yet</Text>
           <Text style={styles.emptyDesc}>Create a budget to track your spending limits</Text>
@@ -216,18 +216,18 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
   addCard: { marginBottom: spacing.lg },
   addTitle: { ...typography.h3, marginBottom: spacing.md },
   fieldLabel: { ...typography.label, marginBottom: spacing.sm, marginTop: spacing.sm },
-  amountRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 2, borderColor: colors.border, borderRadius: borderRadius.md, backgroundColor: colors.surface, paddingHorizontal: spacing.md },
-  currencyLabel: { fontSize: 20, fontWeight: '800', color: colors.text },
-  amountInput: { flex: 1, fontSize: 24, fontWeight: '700', paddingVertical: spacing.sm, marginLeft: spacing.sm, color: colors.text },
+  amountRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 2.5, borderColor: colors.border, borderRadius: borderRadius.md, backgroundColor: colors.surface, paddingHorizontal: spacing.md },
+  currencyLabel: { fontSize: 20, fontWeight: '800', color: colors.text, fontFamily: 'SpaceMono_700Bold' },
+  amountInput: { flex: 1, fontSize: 24, fontWeight: '700', paddingVertical: spacing.sm, marginLeft: spacing.sm, color: colors.text, fontFamily: 'SpaceMono_700Bold' },
   periodRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  periodChip: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderWidth: 2, borderColor: colors.border + '30', borderRadius: borderRadius.md, backgroundColor: colors.surface },
+  periodChip: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderWidth: 2.5, borderColor: colors.border + '30', borderRadius: borderRadius.md, backgroundColor: colors.surface },
   periodChipSelected: { borderColor: colors.border, backgroundColor: colors.accent + '30' },
-  periodText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
-  periodTextSelected: { color: colors.text, fontWeight: '700' },
+  periodText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, fontFamily: 'SpaceMono_400Regular' },
+  periodTextSelected: { color: colors.text, fontWeight: '700', fontFamily: 'SpaceMono_700Bold' },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
-  catItem: { width: '22%', alignItems: 'center', paddingVertical: spacing.sm, borderWidth: 2, borderColor: colors.border + '30', borderRadius: borderRadius.md, backgroundColor: colors.surface },
+  catItem: { width: '22%', alignItems: 'center', paddingVertical: spacing.sm, borderWidth: 2.5, borderColor: colors.border + '30', borderRadius: borderRadius.md, backgroundColor: colors.surface },
   catItemSelected: { borderColor: colors.border, backgroundColor: colors.accent + '30' },
-  catItemName: { fontSize: 9, fontWeight: '600', color: colors.text, textAlign: 'center' },
+  catItemName: { fontSize: 9, fontWeight: '600', color: colors.text, textAlign: 'center', fontFamily: 'SpaceMono_400Regular' },
   addActions: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'flex-end' },
   budgetCard: { marginBottom: spacing.sm },
   budgetHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },

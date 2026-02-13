@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { spacing, borderRadius } from '@/lib/theme';
 import type { ThemeColors, ThemeBorders, ThemeTypography } from '@/lib/theme';
 import { useTheme } from '@/lib/ThemeContext';
 import NeuButton from './NeuButton';
 
 interface NeuEmptyStateProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
   title: string;
   description: string;
   actionTitle?: string;
@@ -27,7 +27,7 @@ export default function NeuEmptyState({
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Ionicons name={icon} size={40} color={colors.textSecondary} />
+        <MaterialCommunityIcons name={icon} size={40} color={colors.textSecondary} />
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
@@ -57,7 +57,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
       width: 80,
       height: 80,
       borderRadius: borderRadius.xl,
-      borderWidth: borders.width,
+      borderWidth: borders.medium,
       borderColor: colors.border + '20',
       backgroundColor: colors.background,
       alignItems: 'center',

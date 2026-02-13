@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts, SpaceMono_400Regular, SpaceMono_700Bold } from '@expo-google-fonts/space-mono';
 import 'react-native-reanimated';
 import { initializeDatabase } from '@/db';
 import { useSettingsStore } from '@/stores/useSettingsStore';
@@ -61,6 +62,11 @@ export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
+  const [fontsLoaded] = useFonts({
+    SpaceMono_400Regular,
+    SpaceMono_700Bold,
+  });
+
   useEffect(() => {
     async function bootstrap() {
       try {
@@ -91,7 +97,7 @@ export default function RootLayout() {
     bootstrap();
   }, []);
 
-  if (!isReady) {
+  if (!isReady || !fontsLoaded) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={lightColors.primary} />

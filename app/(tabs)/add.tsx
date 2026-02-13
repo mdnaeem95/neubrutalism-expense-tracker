@@ -10,7 +10,7 @@ import { useExpenseStore } from '@/stores/useExpenseStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import type { PaymentMethod, RecurringFrequency } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
@@ -143,7 +143,7 @@ export default function AddExpenseScreen() {
           transition={{ type: 'spring', damping: 20, stiffness: 150 }}
         >
           <NeuCard color={colors.green} style={styles.successCard}>
-            <Ionicons name="checkmark-circle" size={48} color={colors.green} />
+            <MaterialCommunityIcons name="check-circle" size={48} color={colors.green} />
             <Text style={styles.successTitle}>Expense Added!</Text>
             <Text style={styles.successText}>Successfully recorded</Text>
           </NeuCard>
@@ -205,7 +205,7 @@ export default function AddExpenseScreen() {
                   selectedCategory === cat.id && { backgroundColor: cat.color + '30', borderColor: cat.color },
                 ]}
               >
-                <Ionicons name={cat.icon as any} size={22} color={selectedCategory === cat.id ? cat.color : colors.textSecondary} />
+                <MaterialCommunityIcons name={cat.icon as any} size={22} color={selectedCategory === cat.id ? cat.color : colors.textSecondary} />
                 <Text style={styles.categoryName} numberOfLines={1}>{cat.name}</Text>
               </Pressable>
             ))}
@@ -233,9 +233,9 @@ export default function AddExpenseScreen() {
           <Text style={styles.sectionLabel}>Date</Text>
           <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setShowDatePicker(true); }}>
             <NeuCard style={styles.dateCard}>
-              <Ionicons name="calendar-outline" size={20} color={colors.text} />
+              <MaterialCommunityIcons name="calendar" size={20} color={colors.text} />
               <Text style={styles.dateText}>{format(selectedDate, 'EEEE, MMMM d, yyyy')}</Text>
-              <Ionicons name="chevron-down" size={16} color={colors.textLight} />
+              <MaterialCommunityIcons name="chevron-down" size={16} color={colors.textLight} />
             </NeuCard>
           </Pressable>
           {showDatePicker && Platform.OS === 'android' && (
@@ -287,7 +287,7 @@ export default function AddExpenseScreen() {
                   paymentMethod === pm.id && styles.paymentItemSelected,
                 ]}
               >
-                <Ionicons
+                <MaterialCommunityIcons
                   name={pm.icon as any}
                   size={18}
                   color={paymentMethod === pm.id ? colors.text : colors.textSecondary}
@@ -313,7 +313,7 @@ export default function AddExpenseScreen() {
             style={styles.recurringRow}
           >
             <View style={styles.recurringInfo}>
-              <Ionicons name="repeat-outline" size={20} color={colors.text} />
+              <MaterialCommunityIcons name="repeat" size={20} color={colors.text} />
               <Text style={styles.recurringLabel}>Recurring Expense</Text>
               {!isPremium && <Text style={styles.proBadge}>PRO</Text>}
             </View>
@@ -377,7 +377,7 @@ export default function AddExpenseScreen() {
             </View>
           ) : (
             <Pressable onPress={handlePickReceipt} style={styles.receiptPlaceholder}>
-              <Ionicons name="camera-outline" size={28} color={colors.textLight} />
+              <MaterialCommunityIcons name="camera-outline" size={28} color={colors.textLight} />
               <Text style={styles.receiptPlaceholderText}>Add Receipt Photo</Text>
             </Pressable>
           )}
@@ -406,63 +406,63 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
   amountCard: { marginBottom: spacing.xl, alignItems: 'center' },
   amountLabel: { ...typography.caption, marginBottom: spacing.sm },
   amountRow: { flexDirection: 'row', alignItems: 'center' },
-  currencySymbol: { fontSize: 32, fontWeight: '800', color: colors.text, marginRight: spacing.xs },
-  amountInput: { fontSize: 48, fontWeight: '800', color: colors.text, minWidth: 120, textAlign: 'center' },
+  currencySymbol: { fontSize: 32, fontWeight: '800', color: colors.text, marginRight: spacing.xs, fontFamily: 'SpaceMono_700Bold' },
+  amountInput: { fontSize: 48, fontWeight: '800', color: colors.text, minWidth: 120, textAlign: 'center', fontFamily: 'SpaceMono_700Bold' },
   errorText: { ...typography.caption, color: colors.error, marginTop: spacing.xs },
   sectionLabel: { ...typography.label, marginBottom: spacing.sm },
   categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xl },
   categoryItem: {
-    width: '22%', alignItems: 'center', paddingVertical: spacing.md, borderWidth: 2,
+    width: '22%', alignItems: 'center', paddingVertical: spacing.md, borderWidth: 2.5,
     borderColor: colors.border + '30', borderRadius: borderRadius.md, backgroundColor: colors.surface,
   },
-  categoryName: { fontSize: 10, fontWeight: '600', color: colors.text, textAlign: 'center' },
+  categoryName: { fontSize: 10, fontWeight: '600', color: colors.text, textAlign: 'center', fontFamily: 'SpaceMono_400Regular' },
   dateCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xl },
-  dateText: { ...typography.body, fontWeight: '600', flex: 1 },
+  dateText: { ...typography.body, fontWeight: '600', flex: 1, fontFamily: 'SpaceMono_400Regular' },
   datePickerOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
   datePickerSheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 20 },
   datePickerHeader: { flexDirection: 'row', justifyContent: 'flex-end', padding: spacing.lg },
-  datePickerDone: { fontSize: 16, fontWeight: '700' },
+  datePickerDone: { fontSize: 16, fontWeight: '700', fontFamily: 'SpaceMono_700Bold' },
   paymentRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.xl },
   paymentItem: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4,
-    paddingVertical: spacing.sm, borderWidth: 2, borderColor: colors.border + '30',
+    paddingVertical: spacing.sm, borderWidth: 2.5, borderColor: colors.border + '30',
     borderRadius: borderRadius.md, backgroundColor: colors.surface,
   },
   paymentItemSelected: { borderColor: colors.border, backgroundColor: colors.primary + '30' },
-  paymentLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
-  paymentLabelSelected: { color: colors.text, fontWeight: '700' },
+  paymentLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, fontFamily: 'SpaceMono_400Regular' },
+  paymentLabelSelected: { color: colors.text, fontWeight: '700', fontFamily: 'SpaceMono_700Bold' },
   recurringRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: spacing.md, marginBottom: spacing.md,
   },
   recurringInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  recurringLabel: { ...typography.body, fontWeight: '600' },
+  recurringLabel: { ...typography.body, fontWeight: '600', fontFamily: 'SpaceMono_400Regular' },
   proBadge: {
     fontSize: 10, fontWeight: '800', color: colors.text, backgroundColor: colors.primary,
-    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden',
+    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden', fontFamily: 'SpaceMono_700Bold',
   },
   toggle: {
-    width: 48, height: 28, borderRadius: 14, borderWidth: 2, borderColor: colors.border,
+    width: 48, height: 28, borderRadius: 14, borderWidth: 2.5, borderColor: colors.border,
     backgroundColor: colors.background, padding: 2, justifyContent: 'center',
   },
   toggleActive: { backgroundColor: colors.primary },
-  toggleThumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border },
+  toggleThumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.surface, borderWidth: 2.5, borderColor: colors.border },
   toggleThumbActive: { alignSelf: 'flex-end' },
   frequencyRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.xl },
   freqChip: {
-    flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderWidth: 2,
+    flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderWidth: 2.5,
     borderColor: colors.border + '30', borderRadius: borderRadius.md, backgroundColor: colors.surface,
   },
   freqChipSelected: { borderColor: colors.border, backgroundColor: colors.accent + '30' },
-  freqText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
-  freqTextSelected: { color: colors.text, fontWeight: '700' },
+  freqText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, fontFamily: 'SpaceMono_400Regular' },
+  freqTextSelected: { color: colors.text, fontWeight: '700', fontFamily: 'SpaceMono_700Bold' },
   receiptPreview: { position: 'relative', marginBottom: spacing.lg },
   receiptCard: { overflow: 'hidden' },
   receiptImage: { width: '100%', height: 200, borderRadius: borderRadius.md - 2 },
   receiptRemoveBtn: { position: 'absolute', top: -8, right: -8, width: 32, height: 32 },
   receiptPlaceholder: {
     alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xl,
-    borderWidth: 2, borderColor: colors.border + '30', borderStyle: 'dashed',
+    borderWidth: 2.5, borderColor: colors.border + '30', borderStyle: 'dashed',
     borderRadius: borderRadius.md, backgroundColor: colors.surface, marginBottom: spacing.lg, gap: spacing.xs,
   },
   receiptPlaceholderText: { ...typography.bodySmall, color: colors.textLight },

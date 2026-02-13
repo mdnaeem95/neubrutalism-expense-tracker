@@ -69,7 +69,7 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'center',
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
-      borderWidth: 2,
+      borderWidth: 2.5,
       borderColor: colors.border,
       borderRadius: borderRadius.full,
       backgroundColor: colors.surface,
@@ -85,9 +85,13 @@ const createStyles = (colors: ThemeColors) =>
       fontSize: 14,
       fontWeight: '600',
       color: colors.text,
+      fontFamily: 'SpaceMono_700Bold',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
     },
     labelSmall: {
       fontSize: 12,
+      fontFamily: 'SpaceMono_400Regular',
     },
     selectedLabel: {
       fontWeight: '700',

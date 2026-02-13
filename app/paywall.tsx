@@ -5,7 +5,7 @@ import { borderRadius, spacing } from '@/lib/theme';
 import { useTheme } from '@/lib/ThemeContext';
 import { OFFERINGS, PREMIUM_FEATURES, purchaseMonthly, purchaseYearly, restorePurchases } from '@/services/subscriptions';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
@@ -52,8 +52,8 @@ export default function PaywallScreen() {
         showDialog({
           title: 'No Purchases Found',
           message: 'No previous purchases were found to restore.',
-          icon: 'information-circle-outline',
-          iconColor: colors.blue,
+          icon: 'information-outline',
+          iconColor: colors.electricBlue,
           buttons: [{ text: 'OK', style: 'default' }],
         });
       }
@@ -75,7 +75,7 @@ export default function PaywallScreen() {
       <MotiView from={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 20, stiffness: 150 }}>
         <View style={styles.hero}>
           <View style={styles.heroIconWrap}>
-            <Ionicons name="star" size={48} color={colors.primary} />
+            <MaterialCommunityIcons name="star" size={48} color={colors.primary} />
           </View>
           <Text style={styles.heroTitle}>Go Pro</Text>
           <Text style={styles.heroSubtitle}>Unlock the full expense tracking experience</Text>
@@ -88,13 +88,13 @@ export default function PaywallScreen() {
           {PREMIUM_FEATURES.map((feature, index) => (
             <View key={index} style={styles.featureRow}>
               <View style={styles.featureIconWrap}>
-                <Ionicons name={feature.icon as any} size={20} color={colors.primary} />
+                <MaterialCommunityIcons name={feature.icon as any} size={20} color={colors.primary} />
               </View>
               <View style={styles.featureText}>
                 <Text style={styles.featureTitle}>{feature.title}</Text>
                 <Text style={styles.featureDesc}>{feature.description}</Text>
               </View>
-              <Ionicons name="checkmark-circle" size={20} color={colors.green} />
+              <MaterialCommunityIcons name="check-circle" size={20} color={colors.green} />
             </View>
           ))}
         </NeuCard>
@@ -184,13 +184,13 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   saveBadge: {
     position: 'absolute', top: -10, backgroundColor: colors.secondary,
     paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: borderRadius.full,
-    borderWidth: 2, borderColor: colors.border,
+    borderWidth: 2.5, borderColor: colors.border,
   },
-  saveBadgeText: { fontSize: 10, fontWeight: '800', color: '#FFFFFF' },
+  saveBadgeText: { fontSize: 10, fontWeight: '800', color: '#FFFFFF', fontFamily: 'SpaceMono_700Bold' },
   planName: { ...typography.label, marginBottom: spacing.xs },
-  planPrice: { fontSize: 28, fontWeight: '800', color: colors.text },
+  planPrice: { fontSize: 28, fontWeight: '800', color: colors.text, fontFamily: 'SpaceMono_700Bold' },
   planPeriod: { ...typography.caption },
   restoreButton: { alignItems: 'center', paddingVertical: spacing.lg },
-  restoreText: { ...typography.body, fontWeight: '600', color: colors.blue },
+  restoreText: { ...typography.body, fontWeight: '600', color: colors.electricBlue },
   legalText: { ...typography.caption, textAlign: 'center', color: colors.textLight, lineHeight: 18 },
 });

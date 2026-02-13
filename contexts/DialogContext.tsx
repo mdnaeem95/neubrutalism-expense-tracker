@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/ThemeContext';
 import NeuDialog, { type DialogButton, type DialogButtonStyle } from '@/components/ui/NeuDialog';
 
@@ -7,7 +7,7 @@ interface DialogConfig {
   title: string;
   message?: string;
   buttons: DialogButton[];
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
   iconColor?: string;
 }
 
@@ -74,7 +74,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     showDialog({
       title,
       message,
-      icon: 'alert-circle-outline',
+      icon: 'alert-circle-outline' as keyof typeof MaterialCommunityIcons.glyphMap,
       iconColor: colors.error,
       buttons: [
         { text: 'Cancel', style: 'cancel' },
@@ -87,7 +87,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     showDialog({
       title,
       message,
-      icon: 'close-circle-outline',
+      icon: 'close-circle-outline' as keyof typeof MaterialCommunityIcons.glyphMap,
       iconColor: colors.error,
       buttons: [{ text: 'OK', style: 'default' }],
     });
@@ -97,7 +97,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     showDialog({
       title,
       message,
-      icon: 'checkmark-circle-outline',
+      icon: 'check-circle-outline' as keyof typeof MaterialCommunityIcons.glyphMap,
       iconColor: colors.success,
       buttons: [{ text: 'OK', style: 'default', onPress: onDismiss }],
     });

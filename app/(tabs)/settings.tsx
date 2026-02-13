@@ -9,7 +9,7 @@ import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
@@ -19,17 +19,17 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function SettingsRow({ icon, label, value, onPress, showArrow = true, color, colors, styles }: {
-  icon: keyof typeof Ionicons.glyphMap; label: string; value?: string; onPress: () => void; showArrow?: boolean; color?: string; colors: ThemeColors; styles: ReturnType<typeof createStyles>;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap; label: string; value?: string; onPress: () => void; showArrow?: boolean; color?: string; colors: ThemeColors; styles: ReturnType<typeof createStyles>;
 }) {
   return (
     <Pressable onPress={onPress} style={styles.settingsRow}>
       <View style={[styles.settingsIcon, { backgroundColor: (color ?? colors.primary) + '20' }]}>
-        <Ionicons name={icon} size={18} color={color ?? colors.primary} />
+        <MaterialCommunityIcons name={icon} size={18} color={color ?? colors.primary} />
       </View>
       <Text style={styles.settingsLabel}>{label}</Text>
       <View style={styles.settingsRight}>
         {value && <Text style={styles.settingsValue}>{value}</Text>}
-        {showArrow && <Ionicons name="chevron-forward" size={18} color={colors.textLight} />}
+        {showArrow && <MaterialCommunityIcons name="chevron-right" size={18} color={colors.textLight} />}
       </View>
     </Pressable>
   );
@@ -76,13 +76,13 @@ export default function SettingsScreen() {
           <NeuCard color={colors.primary} style={styles.premiumBanner} onPress={() => router.push('/paywall')}>
             <View style={styles.premiumContent}>
               <View style={[styles.premiumIconWrap, { backgroundColor: colors.onPrimary + '15' }]}>
-                <Ionicons name="star" size={24} color={colors.onPrimary} />
+                <MaterialCommunityIcons name="star" size={24} color={colors.onPrimary} />
               </View>
               <View style={styles.premiumText}>
                 <Text style={[styles.premiumTitle, { color: colors.onPrimary }]}>Upgrade to Pro</Text>
                 <Text style={[styles.premiumDesc, { color: colors.onPrimary }]}>Unlock all features & remove ads</Text>
               </View>
-              <Ionicons name="chevron-forward" size={24} color={colors.onPrimary} />
+              <MaterialCommunityIcons name="chevron-right" size={24} color={colors.onPrimary} />
             </View>
           </NeuCard>
         </MotiView>
@@ -110,7 +110,7 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>General</Text>
         <NeuCard padded={false}>
           <SettingsRow
-            icon="cash-outline"
+            icon="cash"
             label="Currency"
             value={`${currencySymbol} ${currency}`}
             onPress={() => setShowCurrencyPicker(!showCurrencyPicker)}
@@ -190,7 +190,7 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>Data</Text>
         <NeuCard padded={false}>
           <SettingsRow
-            icon="share-outline"
+            icon="export-variant"
             label="Export Data"
             value={`${expenses.length} expenses`}
             onPress={() => {
@@ -203,7 +203,7 @@ export default function SettingsScreen() {
           />
           <View style={styles.divider} />
           <SettingsRow
-            icon="trash-outline"
+            icon="delete-outline"
             label="Clear All Data"
             onPress={handleClearData}
             showArrow={false}
@@ -218,13 +218,13 @@ export default function SettingsScreen() {
       <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 400 }}>
         <Text style={styles.sectionTitle}>About</Text>
         <NeuCard padded={false}>
-          <SettingsRow icon="information-circle-outline" label="Version" value="1.0.0" onPress={() => {}} showArrow={false} colors={colors} styles={styles} />
+          <SettingsRow icon="information-outline" label="Version" value="1.0.0" onPress={() => {}} showArrow={false} colors={colors} styles={styles} />
           <View style={styles.divider} />
-          <SettingsRow icon="document-text-outline" label="Privacy Policy" onPress={() => {
+          <SettingsRow icon="file-document-outline" label="Privacy Policy" onPress={() => {
             WebBrowser.openBrowserAsync('https://mdnaeem95.github.io/neubrutalism-expense-tracker/privacy.html');
           }} color={colors.accent} colors={colors} styles={styles} />
           <View style={styles.divider} />
-          <SettingsRow icon="clipboard-outline" label="Terms of Service" onPress={() => {
+          <SettingsRow icon="clipboard-text-outline" label="Terms of Service" onPress={() => {
             WebBrowser.openBrowserAsync('https://mdnaeem95.github.io/neubrutalism-expense-tracker/terms.html');
           }} color={colors.accent} colors={colors} styles={styles} />
         </NeuCard>
@@ -233,7 +233,7 @@ export default function SettingsScreen() {
       {isPremium && (
         <View style={styles.premiumStatus}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <Ionicons name="star" size={18} color={colors.primary} />
+            <MaterialCommunityIcons name="star" size={18} color={colors.primary} />
             <Text style={styles.premiumStatusText}>Premium Active</Text>
           </View>
         </View>
@@ -270,8 +270,8 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
     gap: spacing.sm, borderRadius: borderRadius.sm, marginBottom: 4,
   },
   currencyItemSelected: { backgroundColor: colors.primary + '20' },
-  currencySymbol: { fontSize: 18, fontWeight: '700', minWidth: 28, textAlign: 'center', color: colors.text },
-  currencyCode: { fontSize: 14, fontWeight: '700', width: 36, color: colors.text },
+  currencySymbol: { fontSize: 18, fontWeight: '700', fontFamily: 'SpaceMono_700Bold', minWidth: 28, textAlign: 'center', color: colors.text },
+  currencyCode: { fontSize: 14, fontWeight: '700', fontFamily: 'SpaceMono_700Bold', width: 36, color: colors.text },
   currencyName: { ...typography.bodySmall, flex: 1 },
   premiumStatus: { alignItems: 'center', marginTop: spacing.xl },
   premiumStatusText: { ...typography.body, fontWeight: '700', color: colors.primary },

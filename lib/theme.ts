@@ -1,41 +1,50 @@
 /**
- * Neubrutalism Design System
- * Bold borders, bright colors, chunky shadows, playful typography
- * Supports light + dark themes
+ * Fokus Neubrutalism Design System
+ * Warm cream backgrounds, SpaceMono monospace, candy-bright accents,
+ * solid offset shadows, thick visible borders.
  */
 
 export const lightColors = {
-  primary: '#FFD60A',
-  secondary: '#FF6B6B',
-  accent: '#4ECDC4',
+  // Accent colors — semantic mapping for expense tracker
+  hotPink: '#FF6B9D',       // Primary / CTA / add expense
+  electricBlue: '#4D96FF',  // Info / expenses list
+  brightYellow: '#FFD93D',  // Settings / warnings / premium
+  limeGreen: '#6BCB77',     // Stats / success / analytics
+
+  // Convenience aliases
+  primary: '#FF6B9D',
+  secondary: '#4D96FF',
+  accent: '#FFD93D',
+  green: '#6BCB77',
+  blue: '#4D96FF',
   purple: '#A855F7',
-  pink: '#FF69B4',
-  blue: '#60A5FA',
-  green: '#34D399',
+  pink: '#FF6B9D',
   orange: '#FB923C',
 
-  background: '#FFFBF0',
+  // Neutrals
+  background: '#FFF8E7',
   surface: '#FFFFFF',
   border: '#1A1A2E',
   text: '#1A1A2E',
   textSecondary: '#6B7280',
   textLight: '#9CA3AF',
 
-  success: '#34D399',
+  // Semantic
+  success: '#6BCB77',
   error: '#EF4444',
-  warning: '#F59E0B',
+  warning: '#FFD93D',
 
-  // Semantic tint backgrounds for cards
+  // Card tint backgrounds
+  cardTintPink: '#FFE0EB',
+  cardTintBlue: '#DCE8FF',
+  cardTintGreen: '#D4F5DD',
+  cardTintYellow: '#FFF4D1',
   cardTintRed: '#FEE2E2',
-  cardTintBlue: '#DBEAFE',
-  cardTintGreen: '#D1FAE5',
   cardTintPurple: '#F3E8FF',
   cardTintOrange: '#FFF4E6',
   cardTintTeal: '#EDFAF8',
-  cardTintYellow: '#FFF8E0',
   cardTintGray: '#F0F0F0',
-  cardTintPink: '#FFF0F0',
-  cardTintCream: '#FFFEF0',
+  cardTintCream: '#FFF8E7',
 
   onPrimary: '#1A1A2E',
 
@@ -44,19 +53,24 @@ export const lightColors = {
   overlayLight: 'rgba(0, 0, 0, 0.4)',
 
   categoryColors: [
-    '#FF6B6B', '#60A5FA', '#A855F7', '#FF69B4',
-    '#FFD60A', '#34D399', '#4ECDC4', '#FB923C',
+    '#FF6B9D', '#4D96FF', '#6BCB77', '#FFD93D',
+    '#EF4444', '#A855F7', '#FB923C', '#9CA3AF',
   ],
 };
 
 export const darkColors: typeof lightColors = {
-  primary: '#FFD60A',
-  secondary: '#FF6B6B',
-  accent: '#4ECDC4',
+  hotPink: '#FF85B1',
+  electricBlue: '#6DAAFF',
+  brightYellow: '#FFE066',
+  limeGreen: '#85D694',
+
+  primary: '#FF85B1',
+  secondary: '#6DAAFF',
+  accent: '#FFE066',
+  green: '#85D694',
+  blue: '#6DAAFF',
   purple: '#C084FC',
-  pink: '#FF69B4',
-  blue: '#93C5FD',
-  green: '#6EE7B7',
+  pink: '#FF85B1',
   orange: '#FDBA74',
 
   background: '#161625',
@@ -66,19 +80,19 @@ export const darkColors: typeof lightColors = {
   textSecondary: '#9898A8',
   textLight: '#686878',
 
-  success: '#6EE7B7',
+  success: '#85D694',
   error: '#FCA5A5',
-  warning: '#FCD34D',
+  warning: '#FFE066',
 
-  cardTintRed: '#2D1F1F',
+  cardTintPink: '#2D1F25',
   cardTintBlue: '#1F1F2D',
   cardTintGreen: '#1F2D1F',
+  cardTintYellow: '#2D2A1F',
+  cardTintRed: '#2D1F1F',
   cardTintPurple: '#251F2D',
   cardTintOrange: '#2D251F',
   cardTintTeal: '#1F2D2A',
-  cardTintYellow: '#2D2A1F',
   cardTintGray: '#252530',
-  cardTintPink: '#2D1F22',
   cardTintCream: '#2A2A1F',
 
   onPrimary: '#1A1A2E',
@@ -88,14 +102,14 @@ export const darkColors: typeof lightColors = {
   overlayLight: 'rgba(0, 0, 0, 0.5)',
 
   categoryColors: [
-    '#FF6B6B', '#93C5FD', '#C084FC', '#FF69B4',
-    '#FFD60A', '#6EE7B7', '#4ECDC4', '#FDBA74',
+    '#FF85B1', '#6DAAFF', '#85D694', '#FFE066',
+    '#FCA5A5', '#C084FC', '#FDBA74', '#9CA3AF',
   ],
 };
 
 export type ThemeColors = typeof lightColors;
 
-/** @deprecated Use useTheme() hook instead. Kept for backward compat during migration. */
+/** @deprecated Use useTheme() hook instead. */
 export const colors = lightColors;
 
 export const spacing = {
@@ -110,15 +124,22 @@ export const spacing = {
 } as const;
 
 export const borderRadius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 16,
   full: 9999,
 } as const;
 
 function createBorders(c: ThemeColors) {
-  return { width: 3, color: c.border } as const;
+  return {
+    thin: 1.5,
+    medium: 2.5,
+    thick: 3.5,
+    /** @deprecated Use .medium for default border width */
+    width: 2.5,
+    color: c.border,
+  } as const;
 }
 
 function createShadows(c: ThemeColors) {
@@ -133,14 +154,14 @@ function createShadows(c: ThemeColors) {
 
 function createTypography(c: ThemeColors) {
   return {
-    h1: { fontSize: 32, fontWeight: '800' as const, lineHeight: 40, color: c.text },
-    h2: { fontSize: 24, fontWeight: '700' as const, lineHeight: 32, color: c.text },
-    h3: { fontSize: 20, fontWeight: '700' as const, lineHeight: 28, color: c.text },
-    body: { fontSize: 16, fontWeight: '500' as const, lineHeight: 24, color: c.text },
-    bodySmall: { fontSize: 14, fontWeight: '500' as const, lineHeight: 20, color: c.textSecondary },
-    caption: { fontSize: 12, fontWeight: '600' as const, lineHeight: 16, color: c.textSecondary },
-    label: { fontSize: 14, fontWeight: '700' as const, lineHeight: 20, color: c.text },
-    amount: { fontSize: 36, fontWeight: '800' as const, lineHeight: 44, color: c.text },
+    h1: { fontSize: 28, fontWeight: '800' as const, lineHeight: 36, color: c.text, fontFamily: 'SpaceMono_700Bold', textTransform: 'uppercase' as const, letterSpacing: 2 },
+    h2: { fontSize: 22, fontWeight: '700' as const, lineHeight: 30, color: c.text, fontFamily: 'SpaceMono_700Bold' },
+    h3: { fontSize: 18, fontWeight: '700' as const, lineHeight: 26, color: c.text, fontFamily: 'SpaceMono_700Bold' },
+    body: { fontSize: 16, fontWeight: '400' as const, lineHeight: 24, color: c.text, fontFamily: 'SpaceMono_400Regular' },
+    bodySmall: { fontSize: 14, fontWeight: '400' as const, lineHeight: 20, color: c.textSecondary, fontFamily: 'SpaceMono_400Regular' },
+    caption: { fontSize: 12, fontWeight: '400' as const, lineHeight: 16, color: c.textSecondary, fontFamily: 'SpaceMono_400Regular', textTransform: 'uppercase' as const, letterSpacing: 1 },
+    label: { fontSize: 14, fontWeight: '700' as const, lineHeight: 20, color: c.text, fontFamily: 'SpaceMono_700Bold', textTransform: 'uppercase' as const, letterSpacing: 2 },
+    amount: { fontSize: 36, fontWeight: '700' as const, lineHeight: 44, color: c.text, fontFamily: 'SpaceMono_700Bold' },
   } as const;
 }
 
@@ -186,28 +207,28 @@ export const CURRENCIES = [
 ] as const;
 
 export const PAYMENT_METHODS = [
-  { id: 'cash', label: 'Cash', icon: 'cash-outline' },
-  { id: 'card', label: 'Card', icon: 'card-outline' },
-  { id: 'bank', label: 'Bank', icon: 'business-outline' },
-  { id: 'other', label: 'Other', icon: 'ellipsis-horizontal-outline' },
+  { id: 'cash', label: 'Cash', icon: 'cash' },
+  { id: 'card', label: 'Card', icon: 'credit-card-outline' },
+  { id: 'bank', label: 'Bank', icon: 'bank-outline' },
+  { id: 'other', label: 'Other', icon: 'dots-horizontal' },
 ] as const;
 
 export const DEFAULT_CATEGORIES = [
-  { name: 'Food & Dining', icon: 'restaurant-outline', color: '#FF6B6B' },
-  { name: 'Transport', icon: 'car-outline', color: '#60A5FA' },
-  { name: 'Shopping', icon: 'bag-outline', color: '#A855F7' },
-  { name: 'Entertainment', icon: 'film-outline', color: '#FF69B4' },
-  { name: 'Bills & Utilities', icon: 'flash-outline', color: '#FFD60A' },
-  { name: 'Health', icon: 'heart-outline', color: '#34D399' },
-  { name: 'Education', icon: 'book-outline', color: '#4ECDC4' },
+  { name: 'Food & Dining', icon: 'food-fork-drink', color: '#FF6B9D' },
+  { name: 'Transport', icon: 'car', color: '#4D96FF' },
+  { name: 'Shopping', icon: 'shopping', color: '#A855F7' },
+  { name: 'Entertainment', icon: 'filmstrip', color: '#FFD93D' },
+  { name: 'Bills & Utilities', icon: 'flash', color: '#EF4444' },
+  { name: 'Health', icon: 'heart-outline', color: '#6BCB77' },
+  { name: 'Education', icon: 'book-open-variant', color: '#4D96FF' },
   { name: 'Other', icon: 'cube-outline', color: '#9CA3AF' },
 ] as const;
 
 export const CATEGORY_ICON_OPTIONS = [
-  'restaurant-outline', 'car-outline', 'bag-outline', 'film-outline',
-  'flash-outline', 'heart-outline', 'book-outline', 'cube-outline',
-  'home-outline', 'airplane-outline', 'game-controller-outline', 'briefcase-outline',
-  'musical-notes-outline', 'paw-outline', 'barbell-outline', 'cafe-outline',
-  'cart-outline', 'gift-outline', 'globe-outline', 'hammer-outline',
-  'laptop-outline', 'medkit-outline', 'shirt-outline', 'trophy-outline',
+  'food-fork-drink', 'car', 'shopping', 'filmstrip',
+  'flash', 'heart-outline', 'book-open-variant', 'cube-outline',
+  'home-outline', 'airplane', 'gamepad-variant-outline', 'briefcase-outline',
+  'music-note', 'paw', 'dumbbell', 'coffee-outline',
+  'cart-outline', 'gift-outline', 'earth', 'hammer',
+  'laptop', 'medical-bag', 'tshirt-crew-outline', 'trophy-outline',
 ] as const;

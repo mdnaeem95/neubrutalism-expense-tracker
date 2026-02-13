@@ -84,15 +84,17 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
     label: {
       ...typography.body,
       fontWeight: '600',
+      fontFamily: 'SpaceMono_400Regular',
     },
     description: {
       ...typography.caption,
       marginTop: 2,
+      fontFamily: 'SpaceMono_400Regular',
     },
     track: {
       width: 52,
       height: 30,
-      borderWidth: borders.width,
+      borderWidth: borders.medium,
       borderColor: borders.color,
       borderRadius: borderRadius.full,
       padding: 2,

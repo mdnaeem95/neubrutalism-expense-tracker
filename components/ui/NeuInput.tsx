@@ -69,7 +69,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.surface,
-      borderWidth: borders.width,
+      borderWidth: borders.medium,
       borderColor: borders.color,
       borderRadius: borderRadius.md,
       shadowColor: colors.border,
@@ -94,6 +94,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
       ...typography.body,
+      fontFamily: 'SpaceMono_400Regular',
       color: colors.text,
     },
     inputWithIcon: {

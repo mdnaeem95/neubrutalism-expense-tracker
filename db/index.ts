@@ -97,35 +97,62 @@ export async function initializeDatabase() {
 }
 
 const EMOJI_TO_ICON: Record<string, string> = {
-  '🍔': 'restaurant-outline',
-  '🚗': 'car-outline',
-  '🛍️': 'bag-outline',
-  '🛍': 'bag-outline',
-  '🎬': 'film-outline',
-  '💡': 'flash-outline',
+  '🍔': 'food-fork-drink',
+  '🚗': 'car',
+  '🛍️': 'shopping',
+  '🛍': 'shopping',
+  '🎬': 'filmstrip',
+  '💡': 'flash',
   '❤️': 'heart-outline',
   '❤': 'heart-outline',
-  '📚': 'book-outline',
+  '📚': 'book-open-variant',
   '📦': 'cube-outline',
   '🏠': 'home-outline',
-  '✈️': 'airplane-outline',
-  '✈': 'airplane-outline',
-  '🎮': 'game-controller-outline',
+  '✈️': 'airplane',
+  '✈': 'airplane',
+  '🎮': 'gamepad-variant-outline',
   '💼': 'briefcase-outline',
-  '🎵': 'musical-notes-outline',
-  '🐶': 'paw-outline',
-  '💪': 'barbell-outline',
-  '☕': 'cafe-outline',
+  '🎵': 'music-note',
+  '🐶': 'paw',
+  '💪': 'dumbbell',
+  '☕': 'coffee-outline',
+};
+
+// Ionicons → MaterialCommunityIcons name mapping for DB migration
+const IONICON_TO_MCI: Record<string, string> = {
+  'restaurant-outline': 'food-fork-drink',
+  'bag-outline': 'shopping',
+  'film-outline': 'filmstrip',
+  'car-outline': 'car',
+  'flash-outline': 'flash',
+  'book-outline': 'book-open-variant',
+  'airplane-outline': 'airplane',
+  'game-controller-outline': 'gamepad-variant-outline',
+  'musical-notes-outline': 'music-note',
+  'paw-outline': 'paw',
+  'barbell-outline': 'dumbbell',
+  'cafe-outline': 'coffee-outline',
+  'briefcase-outline': 'briefcase-outline',
 };
 
 function migrateEmojiIcons() {
   const categories = db.select().from(schema.categories).all();
   for (const cat of categories) {
-    const ionicon = EMOJI_TO_ICON[cat.icon];
-    if (ionicon) {
+    // First try emoji → MCI
+    const fromEmoji = EMOJI_TO_ICON[cat.icon];
+    if (fromEmoji) {
       sqlite.runSync(
         'UPDATE categories SET icon = ? WHERE id = ?',
-        [ionicon, cat.id]
+        [fromEmoji, cat.id]
+      );
+      continue;
+    }
+    // Then try old Ionicons → MCI
+    const fromIonicon = IONICON_TO_MCI[cat.icon];
+    if (fromIonicon) {
+      sqlite.runSync(
+        'UPDATE categories SET icon = ? WHERE id = ?',
+        [fromIonicon, cat.id]
       );
     }
   }

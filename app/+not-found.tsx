@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Link, Stack } from 'expo-router';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { NeuButton } from '@/components/ui';
 import { spacing } from '@/lib/theme';
 import type { ThemeColors, ThemeTypography } from '@/lib/theme';
@@ -16,7 +16,7 @@ export default function NotFoundScreen() {
       <Stack.Screen options={{ title: 'Not Found', headerShown: false }} />
       <View style={styles.container}>
         <View style={styles.iconWrap}>
-          <Ionicons name="help-circle-outline" size={48} color={colors.textSecondary} />
+          <MaterialCommunityIcons name="help-circle-outline" size={48} color={colors.textSecondary} />
         </View>
         <Text style={styles.title}>Page Not Found</Text>
         <Text style={styles.subtitle}>This screen doesn't exist.</Text>

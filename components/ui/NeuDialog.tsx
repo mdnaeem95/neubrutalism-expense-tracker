@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Modal, StyleSheet, Pressable } from 'react-native';
 import { MotiView } from 'moti';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { spacing, borderRadius } from '@/lib/theme';
 import type { ThemeColors, ThemeBorders, ThemeShadows, ThemeTypography } from '@/lib/theme';
 import { useTheme } from '@/lib/ThemeContext';
@@ -19,7 +19,7 @@ interface NeuDialogProps {
   title: string;
   message?: string;
   buttons: DialogButton[];
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
   iconColor?: string;
   onDismiss?: () => void;
 }
@@ -57,7 +57,7 @@ export default function NeuDialog({
             >
               {icon && (
                 <View style={[styles.iconContainer, { backgroundColor: resolvedIconColor + '18' }]}>
-                  <Ionicons name={icon} size={28} color={resolvedIconColor} />
+                  <MaterialCommunityIcons name={icon} size={28} color={resolvedIconColor} />
                 </View>
               )}
 
@@ -117,7 +117,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, shadows: Theme
     },
     dialog: {
       backgroundColor: colors.surface,
-      borderWidth: borders.width,
+      borderWidth: borders.thick,
       borderColor: borders.color,
       borderRadius: borderRadius.lg,
       padding: spacing['2xl'],
@@ -138,11 +138,13 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, shadows: Theme
     },
     title: {
       ...typography.h3,
+      fontFamily: 'SpaceMono_700Bold',
       textAlign: 'center',
       marginBottom: spacing.sm,
     },
     message: {
       ...typography.body,
+      fontFamily: 'SpaceMono_400Regular',
       color: colors.textSecondary,
       textAlign: 'center',
       marginBottom: spacing.xl,
@@ -158,7 +160,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, shadows: Theme
     button: {
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.xl,
-      borderWidth: borders.width,
+      borderWidth: borders.medium,
       borderRadius: borderRadius.md,
       alignItems: 'center',
       justifyContent: 'center',
@@ -173,5 +175,6 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, shadows: Theme
     buttonText: {
       fontSize: 15,
       fontWeight: '700',
+      fontFamily: 'SpaceMono_700Bold',
     },
   });

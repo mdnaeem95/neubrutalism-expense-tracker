@@ -9,7 +9,7 @@ import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import type { PaymentMethod } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
@@ -45,7 +45,7 @@ export default function ExpenseDetailScreen() {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.headerRow}>
-          <NeuIconButton icon="arrow-back" onPress={() => router.back()} />
+          <NeuIconButton icon="arrow-left" onPress={() => router.back()} />
         </View>
         <View style={styles.notFound}>
           <Text style={styles.notFoundText}>Expense not found</Text>
@@ -136,13 +136,13 @@ export default function ExpenseDetailScreen() {
       <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.headerRow}>
-          <NeuIconButton icon="arrow-back" onPress={() => router.back()} />
+          <NeuIconButton icon="arrow-left" onPress={() => router.back()} />
           <Text style={styles.headerTitle}>Expense Detail</Text>
           <View style={styles.headerActions}>
             {!isEditing ? (
               <>
-                <NeuIconButton icon="create-outline" onPress={() => setIsEditing(true)} bgColor={colors.cardTintYellow} />
-                <NeuIconButton icon="trash-outline" onPress={handleDelete} bgColor={colors.cardTintPink} color={colors.secondary} />
+                <NeuIconButton icon="pencil-outline" onPress={() => setIsEditing(true)} bgColor={colors.cardTintYellow} />
+                <NeuIconButton icon="delete-outline" onPress={handleDelete} bgColor={colors.cardTintPink} color={colors.secondary} />
               </>
             ) : (
               <NeuIconButton icon="close" onPress={() => setIsEditing(false)} bgColor={colors.cardTintPink} />
@@ -185,7 +185,7 @@ export default function ExpenseDetailScreen() {
                   onPress={() => setEditCategory(cat.id)}
                   style={[styles.catItem, editCategory === cat.id && { backgroundColor: colors.cardTintGray, borderColor: cat.color }]}
                 >
-                  <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+                  <MaterialCommunityIcons name={cat.icon as any} size={20} color={cat.color} />
                   <Text style={styles.catItemName} numberOfLines={1}>{cat.name}</Text>
                 </Pressable>
               ))}
@@ -216,7 +216,7 @@ export default function ExpenseDetailScreen() {
               </View>
             ) : (
               <Pressable onPress={handlePickReceipt} style={styles.receiptPlaceholder}>
-                <Ionicons name="camera-outline" size={24} color={colors.textLight} />
+                <MaterialCommunityIcons name="camera-outline" size={24} color={colors.textLight} />
                 <Text style={styles.receiptPlaceholderText}>Add Receipt Photo</Text>
               </Pressable>
             )}
@@ -258,7 +258,7 @@ export default function ExpenseDetailScreen() {
               <NeuCard style={styles.receiptCard} padded={false}>
                 <Image source={{ uri: expense.receiptUri }} style={styles.receiptImage} />
                 <View style={styles.receiptOverlay}>
-                  <Ionicons name="expand-outline" size={20} color="#FFF" />
+                  <MaterialCommunityIcons name="arrow-expand" size={20} color="#FFF" />
                   <Text style={styles.receiptOverlayText}>Tap to view</Text>
                 </View>
               </NeuCard>
@@ -307,22 +307,22 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
   amountText: { ...typography.amount, marginBottom: spacing.xs },
   dateText: { ...typography.caption },
   editAmountRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
-  editCurrency: { fontSize: 28, fontWeight: '800', color: colors.text },
-  editAmountInput: { fontSize: 36, fontWeight: '800', color: colors.text, minWidth: 100, textAlign: 'center' },
+  editCurrency: { fontSize: 28, fontWeight: '800', color: colors.text, fontFamily: 'SpaceMono_700Bold' },
+  editAmountInput: { fontSize: 36, fontWeight: '800', color: colors.text, minWidth: 100, textAlign: 'center', fontFamily: 'SpaceMono_700Bold' },
   fieldLabel: { ...typography.label, marginBottom: spacing.sm, marginTop: spacing.md },
   categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   catItem: {
-    width: '22%', alignItems: 'center', paddingVertical: spacing.sm, borderWidth: 2,
+    width: '22%', alignItems: 'center', paddingVertical: spacing.sm, borderWidth: 2.5,
     borderColor: colors.border + '30', borderRadius: borderRadius.md, backgroundColor: colors.surface,
   },
-  catItemName: { fontSize: 9, fontWeight: '600', color: colors.text, textAlign: 'center' },
+  catItemName: { fontSize: 9, fontWeight: '600', color: colors.text, textAlign: 'center', fontFamily: 'SpaceMono_400Regular' },
   paymentRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   paymentItem: {
-    flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderWidth: 2,
+    flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderWidth: 2.5,
     borderColor: colors.border + '30', borderRadius: borderRadius.md, backgroundColor: colors.surface,
   },
   paymentSelected: { borderColor: colors.border, backgroundColor: colors.cardTintYellow },
-  paymentLabel: { fontSize: 12, fontWeight: '600', color: colors.text },
+  paymentLabel: { fontSize: 12, fontWeight: '600', color: colors.text, fontFamily: 'SpaceMono_400Regular' },
   detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
   detailLabel: { ...typography.bodySmall, color: colors.textSecondary },
   detailValue: { ...typography.body, fontWeight: '600' },
@@ -334,7 +334,7 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
   receiptEditBtn: { width: 36, height: 36 },
   receiptPlaceholder: {
     alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.lg,
-    borderWidth: 2, borderColor: colors.border + '30', borderStyle: 'dashed',
+    borderWidth: 2.5, borderColor: colors.border + '30', borderStyle: 'dashed',
     borderRadius: borderRadius.md, backgroundColor: colors.surface, marginBottom: spacing.md, gap: spacing.xs,
   },
   receiptPlaceholderText: { ...typography.caption, color: colors.textLight },
@@ -343,7 +343,7 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs,
     paddingVertical: spacing.sm, backgroundColor: colors.overlayLight,
   },
-  receiptOverlayText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
+  receiptOverlayText: { color: '#FFF', fontSize: 12, fontWeight: '600', fontFamily: 'SpaceMono_400Regular' },
   modalBackdrop: { flex: 1, backgroundColor: colors.overlayHeavy, justifyContent: 'center' },
   modalCloseRow: { position: 'absolute', top: 0, left: spacing.xl, zIndex: 10 },
   modalImage: { flex: 1, width: '100%' },

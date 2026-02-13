@@ -10,7 +10,7 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import type { DateFilter, ExpenseWithCategory } from '@/types';
 import { AdBanner } from '@/services/ads';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format, isThisWeek, isToday, isYesterday } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -82,6 +82,20 @@ export default function ExpensesScreen() {
     setFilter('categoryId', catId);
   }, [setFilter]);
 
+  type FilterItem =
+    | { type: 'date'; label: string; value: DateFilter }
+    | { type: 'divider' }
+    | { type: 'category'; id: string | null; name: string; icon: string; color: string };
+
+  const filterItems = useMemo((): FilterItem[] => {
+    const items: FilterItem[] = [];
+    DATE_FILTERS.forEach(f => items.push({ type: 'date', ...f }));
+    items.push({ type: 'divider' });
+    items.push({ type: 'category', id: null, name: 'All', icon: 'view-grid-outline', color: colors.accent });
+    categories.forEach(c => items.push({ type: 'category', id: c.id, name: c.name, icon: c.icon, color: c.color }));
+    return items;
+  }, [categories, colors]);
+
   const closePreviousSwipeable = useCallback((currentId: string) => {
     if (openSwipeableId.current && openSwipeableId.current !== currentId) {
       const prev = swipeableRefs.current.get(openSwipeableId.current);
@@ -98,7 +112,7 @@ export default function ExpensesScreen() {
       }}
       style={styles.swipeDeleteAction}
     >
-      <Ionicons name="trash-outline" size={22} color="#FFF" />
+      <MaterialCommunityIcons name="delete-outline" size={22} color="#FFF" />
       <Text style={styles.swipeDeleteText}>Delete</Text>
     </Pressable>
   ), [handleDelete, styles]);
@@ -133,7 +147,7 @@ export default function ExpensesScreen() {
           <View style={styles.amountCol}>
             <Text style={styles.expenseAmount}>-{formatAmount(item.amount)}</Text>
             {item.isRecurring === 1 && (
-              <Ionicons name="repeat" size={12} color={colors.accent} />
+              <MaterialCommunityIcons name="repeat" size={12} color={colors.accent} />
             )}
           </View>
         </Pressable>
@@ -170,43 +184,41 @@ export default function ExpensesScreen() {
           placeholder="Search expenses..."
           value={filters.searchQuery}
           onChangeText={(text) => setFilter('searchQuery', text)}
-          icon={<Ionicons name="search-outline" size={18} color={colors.textSecondary} />}
+          icon={<MaterialCommunityIcons name="magnify" size={18} color={colors.textSecondary} />}
           containerStyle={{ marginBottom: spacing.sm }}
         />
       </View>
 
-      {/* Date Filters */}
-      <View style={styles.filterRow}>
-        {DATE_FILTERS.map((f) => (
-          <NeuChip
-            key={f.value}
-            label={f.label}
-            selected={filters.dateFilter === f.value}
-            onPress={() => setFilter('dateFilter', f.value)}
-            color={colors.primary}
-            size="sm"
-          />
-        ))}
-      </View>
-
-      {/* Category Filters */}
+      {/* Filters */}
       <FlatList
         horizontal
-        data={[{ id: null, name: 'All', icon: 'grid-outline', color: colors.accent } as any, ...categories]}
-        keyExtractor={(item) => item.id || 'all'}
+        data={filterItems}
+        keyExtractor={(item, i) => item.type === 'divider' ? 'divider' : item.type === 'date' ? item.value : (item.id || 'all')}
         showsHorizontalScrollIndicator={false}
-        style={styles.categoryFilterList}
-        contentContainerStyle={styles.categoryFilterRow}
-        renderItem={({ item }) => (
-          <NeuChip
-            label={item.name}
-            icon={<Ionicons name={item.icon as any} size={14} color={selectedCategoryFilter === item.id ? colors.text : item.color} />}
-            selected={selectedCategoryFilter === item.id}
-            onPress={() => handleCategoryFilter(item.id)}
-            color={item.color}
-            size="sm"
-          />
-        )}
+        style={styles.filterList}
+        contentContainerStyle={styles.filterListContent}
+        renderItem={({ item }) => {
+          if (item.type === 'divider') return <View style={styles.filterDivider} />;
+          if (item.type === 'date') return (
+            <NeuChip
+              label={item.label}
+              selected={filters.dateFilter === item.value}
+              onPress={() => setFilter('dateFilter', item.value)}
+              color={colors.primary}
+              size="sm"
+            />
+          );
+          return (
+            <NeuChip
+              label={item.name}
+              icon={<MaterialCommunityIcons name={item.icon as any} size={14} color={selectedCategoryFilter === item.id ? colors.text : item.color} />}
+              selected={selectedCategoryFilter === item.id}
+              onPress={() => handleCategoryFilter(item.id)}
+              color={item.color}
+              size="sm"
+            />
+          );
+        }}
       />
 
       {/* Expense List */}
@@ -224,7 +236,7 @@ export default function ExpensesScreen() {
         />
       ) : (
         <NeuEmptyState
-          icon="search-outline"
+          icon="magnify"
           title="No expenses found"
           description="Try adjusting your filters or add a new expense"
           actionTitle="Add Expense"
@@ -245,15 +257,15 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   screenTitle: { ...typography.h1 },
   totalText: { ...typography.h3, color: colors.secondary },
   searchContainer: { paddingHorizontal: spacing.xl },
-  filterRow: { flexDirection: 'row', paddingHorizontal: spacing.xl, gap: spacing.sm, marginBottom: spacing.sm },
-  categoryFilterList: { flexGrow: 0, marginBottom: spacing.sm },
-  categoryFilterRow: { paddingHorizontal: spacing.xl, gap: spacing.sm },
+  filterList: { flexGrow: 0, marginBottom: spacing.sm },
+  filterListContent: { paddingHorizontal: spacing.xl, gap: spacing.sm, alignItems: 'center' },
+  filterDivider: { width: 1.5, height: 24, backgroundColor: colors.border + '20', marginHorizontal: spacing.xs },
   listContent: { paddingHorizontal: spacing.xl, paddingBottom: 120 },
   sectionHeader: { paddingVertical: spacing.sm, marginTop: spacing.sm },
   sectionTitle: { ...typography.label, color: colors.textSecondary },
   expenseItem: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface,
-    borderWidth: 2, borderColor: colors.border + '20', borderRadius: borderRadius.md,
+    borderWidth: 2.5, borderColor: colors.border + '20', borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md, paddingVertical: spacing.md, gap: spacing.md,
   },
   catIcon: { width: 40, height: 40, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center' },
@@ -274,10 +286,10 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
     borderRadius: borderRadius.md,
     marginLeft: spacing.sm,
   },
-  swipeDeleteText: { color: '#FFF', fontSize: 11, fontWeight: '700', marginTop: 2 },
+  swipeDeleteText: { color: '#FFF', fontSize: 11, fontWeight: '700', marginTop: 2, fontFamily: 'SpaceMono_700Bold' },
   separator: { height: spacing.sm },
   adBanner: {
-    height: 60, backgroundColor: colors.surface, borderWidth: borders.width, borderColor: borders.color,
+    height: 60, backgroundColor: colors.surface, borderWidth: borders.medium, borderColor: borders.color,
     borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center', marginHorizontal: spacing.xl, marginBottom: spacing.sm,
   },
   adText: { ...typography.caption, color: colors.textLight },

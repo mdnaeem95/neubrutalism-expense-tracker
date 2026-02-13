@@ -97,9 +97,9 @@ export default function NeuCard({
 const createStyles = (colors: ThemeColors, borders: ThemeBorders) =>
   StyleSheet.create({
     card: {
-      borderWidth: borders.width,
+      borderWidth: borders.medium,
       borderColor: borders.color,
-      borderRadius: borderRadius.lg,
+      borderRadius: borderRadius.md,
       shadowOpacity: 1,
       shadowRadius: 0,
       elevation: 0,

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <!-- Background: yellow rounded rect -->
-  <rect x="0" y="0" width="1024" height="1024" rx="220" ry="220" fill="#FFD60A"/>
+  <!-- Background: full-bleed square (OS applies rounding) -->
+  <rect x="0" y="0" width="1024" height="1024" fill="#FF6B9D"/>
 
   <!-- Neubrutalism offset shadow for the book -->
   <rect x="280" y="260" width="504" height="544" rx="32" fill="#1A1A2E"/>
@@ -20,11 +20,11 @@
   <line x1="300" y1="650" x2="440" y2="650" stroke="#1A1A2E" stroke-width="6" opacity="0.2"/>
 
   <!-- Small "check" marks on left page lines -->
-  <circle cx="310" cy="350" r="8" fill="#4ECDC4"/>
-  <circle cx="310" cy="410" r="8" fill="#4ECDC4"/>
-  <circle cx="310" cy="470" r="8" fill="#FF6B6B"/>
-  <circle cx="310" cy="530" r="8" fill="#4ECDC4"/>
-  <circle cx="310" cy="590" r="8" fill="#FF6B6B"/>
+  <circle cx="310" cy="350" r="8" fill="#6BCB77"/>
+  <circle cx="310" cy="410" r="8" fill="#6BCB77"/>
+  <circle cx="310" cy="470" r="8" fill="#FFD93D"/>
+  <circle cx="310" cy="530" r="8" fill="#6BCB77"/>
+  <circle cx="310" cy="590" r="8" fill="#FFD93D"/>
 
   <!-- Dollar sign on right page -->
   <text x="632" y="540" font-family="Arial Black, Impact, sans-serif" font-weight="900"

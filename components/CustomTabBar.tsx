@@ -7,7 +7,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { spacing, borderRadius } from '@/lib/theme';
 import type { ThemeColors, ThemeBorders } from '@/lib/theme';
 import { useTheme } from '@/lib/ThemeContext';
@@ -21,11 +21,11 @@ interface TabBarProps {
 }
 
 const TAB_CONFIG = [
-  { name: 'index', label: 'Home', icon: 'home', iconActive: 'home' },
-  { name: 'expenses', label: 'Expenses', icon: 'list-outline', iconActive: 'list' },
-  { name: 'add', label: 'Add', icon: 'add', iconActive: 'add' },
-  { name: 'analytics', label: 'Analytics', icon: 'pie-chart-outline', iconActive: 'pie-chart' },
-  { name: 'settings', label: 'Settings', icon: 'settings-outline', iconActive: 'settings' },
+  { name: 'index', label: 'Home', icon: 'home-outline', iconActive: 'home' },
+  { name: 'expenses', label: 'Expenses', icon: 'format-list-bulleted', iconActive: 'format-list-bulleted' },
+  { name: 'add', label: 'Add', icon: 'plus', iconActive: 'plus' },
+  { name: 'analytics', label: 'Analytics', icon: 'chart-pie', iconActive: 'chart-pie' },
+  { name: 'settings', label: 'Settings', icon: 'cog-outline', iconActive: 'cog' },
 ];
 
 function TabButton({
@@ -62,9 +62,9 @@ function TabButton({
           {
             width: 52,
             height: 52,
-            borderRadius: 16,
+            borderRadius: borderRadius.lg,
             backgroundColor: colors.primary,
-            borderWidth: borders.width,
+            borderWidth: borders.medium,
             borderColor: borders.color,
             alignItems: 'center' as const,
             justifyContent: 'center' as const,
@@ -80,7 +80,7 @@ function TabButton({
         accessibilityRole="button"
         accessibilityLabel="Add expense"
       >
-        <Ionicons name="add" size={28} color={colors.onPrimary} />
+        <MaterialCommunityIcons name="plus" size={28} color={colors.onPrimary} />
       </AnimatedPressable>
     );
   }
@@ -96,7 +96,7 @@ function TabButton({
       accessibilityState={{ selected: isFocused }}
       accessibilityLabel={config.label}
     >
-      <Ionicons
+      <MaterialCommunityIcons
         name={isFocused ? (config.iconActive as any) : (config.icon as any)}
         size={22}
         color={isFocused ? colors.text : colors.textLight}
@@ -104,6 +104,9 @@ function TabButton({
       <Text style={{
         fontSize: 10,
         fontWeight: isFocused ? '700' : '600',
+        fontFamily: 'SpaceMono_700Bold',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
         color: isFocused ? colors.text : colors.textLight,
         marginTop: 2,
       }}>
@@ -183,7 +186,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders) =>
     tabBar: {
       flexDirection: 'row',
       backgroundColor: colors.surface,
-      borderWidth: borders.width,
+      borderWidth: borders.medium,
       borderColor: borders.color,
       borderRadius: borderRadius.xl,
       paddingVertical: spacing.sm,
