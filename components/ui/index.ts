@@ -9,6 +9,3 @@ export { default as NeuEmptyState } from './NeuEmptyState';
 export { default as NeuSwitch } from './NeuSwitch';
 export { default as NeuHeader } from './NeuHeader';
 export { default as NeuDialog } from './NeuDialog';
-export { default as PiggyBank } from './PiggyBank';
-export { default as SpeechBubble } from './SpeechBubble';
-export { default as PiggyMascot } from './PiggyMascot';

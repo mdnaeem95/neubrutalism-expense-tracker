@@ -71,9 +71,6 @@
     "experiments": {
       "typedRoutes": true
     },
-    "_BEFORE_BUILD": [
-      "Replace AdMob ad unit IDs in services/ads.tsx (after app is published)"
-    ],
     "extra": {
       "router": {},
       "eas": {

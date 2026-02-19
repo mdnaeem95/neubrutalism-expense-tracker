@@ -1,4 +1,5 @@
-import { NeuButton, NeuCard, NeuIconButton, NeuInput, PiggyMascot } from '@/components/ui';
+import { NeuButton, NeuCard, NeuIconButton, NeuInput } from '@/components/ui';
+import XPGainAnimation from '@/components/XPGainAnimation';
 import { useDialog } from '@/contexts/DialogContext';
 import { useTheme } from '@/lib/ThemeContext';
 import { borderRadius, PAYMENT_METHODS, spacing } from '@/lib/theme';
@@ -38,7 +39,8 @@ export default function AddExpenseScreen() {
   const router = useRouter();
   const { addExpense, incrementAddCount } = useExpenseStore();
   const { categories } = useCategoryStore();
-  const { currencySymbol, defaultPaymentMethod, mascotEnabled } = useSettingsStore();
+  const { currencySymbol, defaultPaymentMethod, gamificationEnabled } = useSettingsStore();
+  const { lastXPGain } = useGamificationStore();
   const { isPremium } = useSubscriptionStore();
   const { colors, typography } = useTheme();
 
@@ -129,6 +131,7 @@ export default function AddExpenseScreen() {
 
     setTimeout(() => {
       setShowSuccess(false);
+      useGamificationStore.getState().dismissXPGain();
       reset();
       setSelectedCategory(categories[0]?.id || '');
       setPaymentMethod(defaultPaymentMethod);
@@ -146,16 +149,15 @@ export default function AddExpenseScreen() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', damping: 20, stiffness: 150 }}
         >
-          {mascotEnabled ? (
-            <PiggyMascot context="success" size="large" />
-          ) : (
-            <NeuCard color={colors.green} style={styles.successCard}>
-              <MaterialCommunityIcons name="check-circle" size={48} color={colors.green} />
-              <Text style={styles.successTitle}>Expense Added!</Text>
-              <Text style={styles.successText}>Successfully recorded</Text>
-            </NeuCard>
-          )}
+          <NeuCard color={colors.green} style={styles.successCard}>
+            <MaterialCommunityIcons name="check-circle" size={48} color={colors.green} />
+            <Text style={styles.successTitle}>Expense Added!</Text>
+            <Text style={styles.successText}>Successfully recorded</Text>
+          </NeuCard>
         </MotiView>
+        {gamificationEnabled && lastXPGain && (
+          <XPGainAnimation label={lastXPGain.label} />
+        )}
       </View>
     );
   }

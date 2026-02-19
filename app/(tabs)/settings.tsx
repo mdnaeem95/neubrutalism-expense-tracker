@@ -41,7 +41,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { colors, borders, shadows, typography } = useTheme();
   const {
-    currency, currencySymbol, notificationsEnabled, budgetAlerts, theme, mascotEnabled, updateSetting,
+    currency, currencySymbol, notificationsEnabled, budgetAlerts, theme, gamificationEnabled, updateSetting,
   } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
   const { expenses, clearAllExpenses } = useExpenseStore();
@@ -106,10 +106,10 @@ export default function SettingsScreen() {
         </View>
         <View style={[styles.divider, { marginVertical: spacing.md }]} />
         <NeuSwitch
-          label="Piggy Mascot"
-          description="Show animated piggy bank companion"
-          value={mascotEnabled}
-          onValueChange={(v) => updateSetting('mascotEnabled', v)}
+          label="Player XP"
+          description="Track your progress with XP and levels"
+          value={gamificationEnabled}
+          onValueChange={(v) => updateSetting('gamificationEnabled', v)}
         />
       </NeuCard>
 

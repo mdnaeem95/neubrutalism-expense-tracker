@@ -1,21 +1,25 @@
 import React, { useMemo } from 'react';
 import { Modal, View, Text, StyleSheet } from 'react-native';
 import { MotiView } from 'moti';
-import PiggyBank from './ui/PiggyBank';
-import { NeuButton } from './ui';
+import { NeuButton, NeuBadge } from '@/components/ui';
 import { useTheme } from '@/lib/ThemeContext';
 import { spacing } from '@/lib/theme';
+import { getRankForLevel, getRankColorKey } from '@/types';
 import type { ThemeColors, ThemeTypography } from '@/lib/theme';
 
-interface MilestoneCelebrationProps {
-  milestoneCount: number;
+interface LevelUpCelebrationProps {
+  level: number;
   visible: boolean;
   onDismiss: () => void;
 }
 
-export default function MilestoneCelebration({ milestoneCount, visible, onDismiss }: MilestoneCelebrationProps) {
+export default function LevelUpCelebration({ level, visible, onDismiss }: LevelUpCelebrationProps) {
   const { colors, typography } = useTheme();
   const styles = useMemo(() => createStyles(colors, typography), [colors, typography]);
+
+  const rank = getRankForLevel(level);
+  const rankColorKey = getRankColorKey(level);
+  const rankColor = (colors as unknown as Record<string, string>)[rankColorKey] ?? colors.primary;
 
   const confetti = useMemo(() => {
     const confettiColors = [colors.primary, colors.accent, colors.green, colors.secondary, colors.purple];
@@ -43,7 +47,7 @@ export default function MilestoneCelebration({ milestoneCount, visible, onDismis
             from={{ translateX: 0, translateY: 0, opacity: 0, scale: 0 }}
             animate={{ translateX: piece.toX, translateY: piece.toY, opacity: [0, 1, 0.8], scale: 1 }}
             transition={{ type: 'timing', duration: 800, delay: piece.delay }}
-            style={[styles.confettiWrap]}
+            style={styles.confettiWrap}
           >
             <View style={{
               width: piece.size, height: piece.size,
@@ -54,13 +58,15 @@ export default function MilestoneCelebration({ milestoneCount, visible, onDismis
           </MotiView>
         ))}
 
-        {/* Piggy */}
+        {/* Level Number */}
         <MotiView
           from={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', damping: 15, stiffness: 130 }}
+          style={styles.levelContainer}
         >
-          <PiggyBank mood="proud" size="large" />
+          <Text style={[styles.levelNumber, { color: rankColor }]}>LVL {level}</Text>
+          <NeuBadge label={rank} color={rankColor + '30'} textColor={rankColor} size="md" />
         </MotiView>
 
         {/* Text */}
@@ -69,8 +75,8 @@ export default function MilestoneCelebration({ milestoneCount, visible, onDismis
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: 'timing', duration: 400, delay: 300 }}
         >
-          <Text style={styles.title}>Milestone!</Text>
-          <Text style={styles.subtitle}>{milestoneCount} expenses tracked</Text>
+          <Text style={styles.title}>Level Up!</Text>
+          <Text style={styles.subtitle}>You are now a {rank}</Text>
         </MotiView>
 
         {/* Dismiss button */}
@@ -94,6 +100,14 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
   },
   confettiWrap: {
     position: 'absolute',
+  },
+  levelContainer: {
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  levelNumber: {
+    ...typography.amount,
+    fontSize: 48,
   },
   title: {
     ...typography.h1, color: colors.accent,

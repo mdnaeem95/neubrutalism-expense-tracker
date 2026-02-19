@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS: Settings = {
   notificationsEnabled: false,
   budgetAlerts: true,
   theme: 'system',
-  mascotEnabled: true,
+  gamificationEnabled: true,
 };
 
 interface SettingsState extends Settings {
@@ -31,7 +31,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     try {
       const stored = await AsyncStorage.getItem(SETTINGS_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as Partial<Settings>;
+        const parsed = JSON.parse(stored) as Partial<Settings> & { mascotEnabled?: boolean };
+        // Migrate old mascotEnabled -> gamificationEnabled
+        if ('mascotEnabled' in parsed && !('gamificationEnabled' in parsed)) {
+          (parsed as Partial<Settings>).gamificationEnabled = parsed.mascotEnabled;
+        }
+        delete (parsed as any).mascotEnabled;
         set({ ...DEFAULT_SETTINGS, ...parsed, isLoaded: true });
       } else {
         set({ isLoaded: true });
@@ -52,7 +57,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       notificationsEnabled: state.notificationsEnabled,
       budgetAlerts: state.budgetAlerts,
       theme: state.theme,
-      mascotEnabled: state.mascotEnabled,
+      gamificationEnabled: state.gamificationEnabled,
     };
     await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   },

@@ -1,15 +1,17 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format, differenceInCalendarDays, parseISO } from 'date-fns';
-import type { GamificationData } from '@/types';
-import { MILESTONE_THRESHOLDS } from '@/types';
+import type { GamificationData, XPData } from '@/types';
+import { calculateXPData, XP_REWARDS } from '@/types';
 
 const GAMIFICATION_KEY = 'gamification_data';
 
 const DEFAULT_DATA: GamificationData = {
   streak: { currentStreak: 0, longestStreak: 0, lastLogDate: null },
   totalExpenseCount: 0,
-  shownMilestones: [],
+  totalXP: 0,
+  currentLevel: 1,
+  shownLevelUps: [],
 };
 
 async function persistData(data: GamificationData) {
@@ -18,29 +20,45 @@ async function persistData(data: GamificationData) {
 
 interface GamificationState extends GamificationData {
   isLoaded: boolean;
-  pendingMilestone: number | null;
+  pendingLevelUp: number | null;
+  lastXPGain: { amount: number; label: string } | null;
+  xpData: XPData;
   loadGamification: () => Promise<void>;
   recordExpenseAdded: () => void;
   checkStreakOnAppOpen: () => void;
-  dismissMilestone: () => void;
+  dismissLevelUp: () => void;
+  dismissXPGain: () => void;
 }
 
 export const useGamificationStore = create<GamificationState>((set, get) => ({
   ...DEFAULT_DATA,
   isLoaded: false,
-  pendingMilestone: null,
+  pendingLevelUp: null,
+  lastXPGain: null,
+  xpData: calculateXPData(0),
 
   loadGamification: async () => {
     try {
       const stored = await AsyncStorage.getItem(GAMIFICATION_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as Partial<GamificationData>;
-        set({ ...DEFAULT_DATA, ...parsed, isLoaded: true });
+        const parsed = JSON.parse(stored) as Partial<GamificationData> & { shownMilestones?: number[] };
+        // Migration: old data had shownMilestones + no XP fields
+        const totalXP = parsed.totalXP ?? (parsed.totalExpenseCount ?? 0) * XP_REWARDS.LOG_EXPENSE;
+        const xpData = calculateXPData(totalXP);
+        set({
+          ...DEFAULT_DATA,
+          ...parsed,
+          totalXP,
+          currentLevel: xpData.currentLevel,
+          shownLevelUps: parsed.shownLevelUps ?? [],
+          xpData,
+          isLoaded: true,
+        });
       } else {
-        set({ isLoaded: true });
+        set({ isLoaded: true, xpData: calculateXPData(0) });
       }
     } catch {
-      set({ isLoaded: true });
+      set({ isLoaded: true, xpData: calculateXPData(0) });
     }
   },
 
@@ -55,7 +73,13 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
       const updated = { ...streak, currentStreak: 0 };
       set({ streak: updated });
       const state = get();
-      persistData({ streak: state.streak, totalExpenseCount: state.totalExpenseCount, shownMilestones: state.shownMilestones });
+      persistData({
+        streak: state.streak,
+        totalExpenseCount: state.totalExpenseCount,
+        totalXP: state.totalXP,
+        currentLevel: state.currentLevel,
+        shownLevelUps: state.shownLevelUps,
+      });
     }
   },
 
@@ -75,32 +99,56 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
       lastLogDate = today;
     }
 
+    // XP calculation
+    let xpGained = XP_REWARDS.LOG_EXPENSE;
+    let xpLabel = `+${XP_REWARDS.LOG_EXPENSE} XP`;
+    if (currentStreak > 1) {
+      const streakBonus = XP_REWARDS.STREAK_BONUS_PER_DAY * currentStreak;
+      xpGained += streakBonus;
+      xpLabel = `+${XP_REWARDS.LOG_EXPENSE} XP  +${streakBonus} Streak`;
+    }
+
+    const newTotalXP = state.totalXP + xpGained;
+    const oldXPData = calculateXPData(state.totalXP);
+    const newXPData = calculateXPData(newTotalXP);
     const newCount = state.totalExpenseCount + 1;
 
-    let pendingMilestone: number | null = null;
-    if (
-      (MILESTONE_THRESHOLDS as readonly number[]).includes(newCount) &&
-      !state.shownMilestones.includes(newCount)
-    ) {
-      pendingMilestone = newCount;
+    // Check for level up
+    let pendingLevelUp: number | null = null;
+    if (newXPData.currentLevel > oldXPData.currentLevel && !state.shownLevelUps.includes(newXPData.currentLevel)) {
+      pendingLevelUp = newXPData.currentLevel;
     }
 
     const newStreak = { currentStreak, longestStreak, lastLogDate };
-    const newShownMilestones = pendingMilestone
-      ? [...state.shownMilestones, pendingMilestone]
-      : state.shownMilestones;
+    const newShownLevelUps = pendingLevelUp
+      ? [...state.shownLevelUps, pendingLevelUp]
+      : state.shownLevelUps;
 
     set({
       streak: newStreak,
       totalExpenseCount: newCount,
-      pendingMilestone,
-      shownMilestones: newShownMilestones,
+      totalXP: newTotalXP,
+      currentLevel: newXPData.currentLevel,
+      xpData: newXPData,
+      pendingLevelUp,
+      lastXPGain: { amount: xpGained, label: xpLabel },
+      shownLevelUps: newShownLevelUps,
     });
 
-    persistData({ streak: newStreak, totalExpenseCount: newCount, shownMilestones: newShownMilestones });
+    persistData({
+      streak: newStreak,
+      totalExpenseCount: newCount,
+      totalXP: newTotalXP,
+      currentLevel: newXPData.currentLevel,
+      shownLevelUps: newShownLevelUps,
+    });
   },
 
-  dismissMilestone: () => {
-    set({ pendingMilestone: null });
+  dismissLevelUp: () => {
+    set({ pendingLevelUp: null });
+  },
+
+  dismissXPGain: () => {
+    set({ lastXPGain: null });
   },
 }));

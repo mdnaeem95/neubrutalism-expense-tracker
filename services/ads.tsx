@@ -7,7 +7,6 @@ let BannerAd: any;
 let BannerAdSize: any;
 let InterstitialAd: any;
 let AdEventType: any;
-let TestIds: any;
 let nativeAdsAvailable = false;
 
 try {
@@ -17,19 +16,23 @@ try {
   BannerAdSize = ads.BannerAdSize;
   InterstitialAd = ads.InterstitialAd;
   AdEventType = ads.AdEventType;
-  TestIds = ads.TestIds;
   nativeAdsAvailable = true;
 } catch {
   // Native module not available (Expo Go) — ads will be no-ops
 }
 
-// TODO: BEFORE_BUILD — Replace with your real AdMob ad unit IDs
 const BANNER_ID = nativeAdsAvailable
-  ? Platform.select({ ios: TestIds.BANNER, android: TestIds.BANNER })!
+  ? Platform.select({
+      ios: 'ca-app-pub-3113906121142395/4642323987',
+      android: 'ca-app-pub-3113906121142395/4642323987',
+    })!
   : '';
 
 const INTERSTITIAL_ID = nativeAdsAvailable
-  ? Platform.select({ ios: TestIds.INTERSTITIAL, android: TestIds.INTERSTITIAL })!
+  ? Platform.select({
+      ios: 'ca-app-pub-3113906121142395/5092481207',
+      android: 'ca-app-pub-3113906121142395/5092481207',
+    })!
   : '';
 
 export async function initializeAds() {

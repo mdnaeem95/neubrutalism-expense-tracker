@@ -11,8 +11,9 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
-import { NeuCard, NeuProgressBar, NeuBadge, NeuEmptyState, NeuButton, PiggyMascot } from '@/components/ui';
-import MilestoneCelebration from '@/components/MilestoneCelebration';
+import { NeuCard, NeuProgressBar, NeuBadge, NeuEmptyState, NeuButton } from '@/components/ui';
+import XPCard from '@/components/XPCard';
+import LevelUpCelebration from '@/components/LevelUpCelebration';
 import CategoryIcon from '@/components/CategoryIcon';
 import { AdBanner } from '@/services/ads';
 import { spacing, borderRadius } from '@/lib/theme';
@@ -25,10 +26,10 @@ export default function DashboardScreen() {
   const router = useRouter();
   const { expenses, getMonthlyTotal } = useExpenseStore();
   const { getOverallBudgetProgress } = useBudgetStore();
-  const { formatAmount, mascotEnabled } = useSettingsStore();
+  const { formatAmount, gamificationEnabled } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
   const { categories } = useCategoryStore();
-  const { streak, pendingMilestone, dismissMilestone } = useGamificationStore();
+  const { pendingLevelUp, dismissLevelUp } = useGamificationStore();
   const { colors, borders, typography } = useTheme();
 
   const styles = useMemo(() => createStyles(colors, borders, typography), [colors, borders, typography]);
@@ -81,20 +82,10 @@ export default function DashboardScreen() {
       {/* Header */}
       <MotiView from={{ opacity: 0, translateY: -10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400 }}>
         <View style={styles.header}>
-          {mascotEnabled ? (
-            <PiggyMascot
-              context="dashboard"
-              size="small"
-              streakCount={streak.currentStreak}
-              budgetPercentage={budgetProgress?.percentage}
-              style={{ flex: 1 }}
-            />
-          ) : (
-            <View>
-              <Text style={styles.greeting}>Hello!</Text>
-              <Text style={styles.date}>{format(new Date(), 'EEEE, MMMM d')}</Text>
-            </View>
-          )}
+          <View>
+            <Text style={styles.greeting}>Hello!</Text>
+            <Text style={styles.date}>{format(new Date(), 'EEEE, MMMM d')}</Text>
+          </View>
           {!isPremium && (
             <Pressable onPress={() => router.push('/paywall')} style={styles.premiumBadge}>
               <MaterialCommunityIcons name="star" size={12} color={colors.text} />
@@ -103,6 +94,13 @@ export default function DashboardScreen() {
           )}
         </View>
       </MotiView>
+
+      {/* XP Progress */}
+      {gamificationEnabled && (
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 50 }}>
+          <XPCard />
+        </MotiView>
+      )}
 
       {/* Monthly Total */}
       <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 100 }}>
@@ -169,14 +167,13 @@ export default function DashboardScreen() {
           </NeuCard>
         ) : (
           <NeuCard>
-            {mascotEnabled ? (
-              <View style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
-                <PiggyMascot context="empty" size="medium" />
-                <NeuButton title="Add Expense" onPress={() => router.push('/(tabs)/add')} variant="primary" size="md" style={{ marginTop: spacing.md }} />
-              </View>
-            ) : (
-              <NeuEmptyState icon="wallet-outline" title="No expenses yet" description="Tap the + button to add your first expense" actionTitle="Add Expense" onAction={() => router.push('/(tabs)/add')} />
-            )}
+            <NeuEmptyState
+              icon="wallet-outline"
+              title={gamificationEnabled ? 'Start your journey!' : 'No expenses yet'}
+              description={gamificationEnabled ? 'Log your first expense to earn XP' : 'Tap the + button to add your first expense'}
+              actionTitle="Add Expense"
+              onAction={() => router.push('/(tabs)/add')}
+            />
           </NeuCard>
         )}
       </MotiView>
@@ -186,11 +183,11 @@ export default function DashboardScreen() {
       )}
       <View style={{ height: 100 }} />
 
-      {mascotEnabled && pendingMilestone !== null && (
-        <MilestoneCelebration
-          milestoneCount={pendingMilestone}
+      {gamificationEnabled && pendingLevelUp !== null && (
+        <LevelUpCelebration
+          level={pendingLevelUp}
           visible={true}
-          onDismiss={dismissMilestone}
+          onDismiss={dismissLevelUp}
         />
       )}
     </ScrollView>
