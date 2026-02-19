@@ -64,6 +64,7 @@ export interface Settings {
   notificationsEnabled: boolean;
   budgetAlerts: boolean;
   theme: Theme;
+  mascotEnabled: boolean;
 }
 
 export interface SpendingByCategory {
@@ -86,3 +87,21 @@ export interface MonthlyComparison {
   lastMonth: number;
   percentChange: number;
 }
+
+// Piggy Bank Mascot
+export type PiggyMood = 'happy' | 'excited' | 'proud' | 'worried' | 'sleeping' | 'encouraging';
+export type PiggySize = 'small' | 'medium' | 'large';
+
+export interface StreakData {
+  currentStreak: number;
+  longestStreak: number;
+  lastLogDate: string | null;
+}
+
+export interface GamificationData {
+  streak: StreakData;
+  totalExpenseCount: number;
+  shownMilestones: number[];
+}
+
+export const MILESTONE_THRESHOLDS = [1, 10, 25, 50, 100, 250, 500, 1000] as const;

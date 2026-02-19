@@ -4,6 +4,7 @@ import type { ThemeBorders, ThemeColors, ThemeTypography } from '@/lib/theme';
 import { borderRadius, CURRENCIES, spacing } from '@/lib/theme';
 import { useTheme } from '@/lib/ThemeContext';
 import { requestNotificationPermissions, scheduleBudgetAlerts, scheduleRecurringReminders, cancelAllNotifications } from '@/services/notifications';
+import { presentAddExpenseShortcut, nativeSiriAvailable, AddToSiriButton, SiriButtonStyles, ADD_EXPENSE_SHORTCUT } from '@/services/siriShortcuts';
 import { useBudgetStore } from '@/stores/useBudgetStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
@@ -15,7 +16,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function SettingsRow({ icon, label, value, onPress, showArrow = true, color, colors, styles }: {
@@ -40,7 +41,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { colors, borders, shadows, typography } = useTheme();
   const {
-    currency, currencySymbol, notificationsEnabled, budgetAlerts, theme, updateSetting,
+    currency, currencySymbol, notificationsEnabled, budgetAlerts, theme, mascotEnabled, updateSetting,
   } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
   const { expenses, clearAllExpenses } = useExpenseStore();
@@ -103,6 +104,13 @@ export default function SettingsScreen() {
             />
           ))}
         </View>
+        <View style={[styles.divider, { marginVertical: spacing.md }]} />
+        <NeuSwitch
+          label="Piggy Mascot"
+          description="Show animated piggy bank companion"
+          value={mascotEnabled}
+          onValueChange={(v) => updateSetting('mascotEnabled', v)}
+        />
       </NeuCard>
 
       {/* General */}
@@ -185,8 +193,58 @@ export default function SettingsScreen() {
         </NeuCard>
       </MotiView>
 
+      {/* Siri & Shortcuts — iOS only */}
+      {Platform.OS === 'ios' && nativeSiriAvailable && (
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 250 }}>
+          <Text style={styles.sectionTitle}>Siri & Shortcuts</Text>
+          <NeuCard>
+            <View style={styles.siriSection}>
+              <View style={styles.siriInfo}>
+                <View style={[styles.settingsIcon, { backgroundColor: colors.purple + '20' }]}>
+                  <MaterialCommunityIcons name="microphone" size={18} color={colors.purple} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.settingLabel, { marginBottom: 0 }]}>Add Expense</Text>
+                  <Text style={styles.siriDescription}>Use Siri or Back Tap to quickly add expenses</Text>
+                </View>
+              </View>
+              {AddToSiriButton ? (
+                <AddToSiriButton
+                  shortcut={ADD_EXPENSE_SHORTCUT}
+                  buttonStyle={SiriButtonStyles?.automaticOutline}
+                  onPress={() => {
+                    presentAddExpenseShortcut(({ status }) => {
+                      if (status === 'added') {
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        showSuccess('Siri Shortcut Added', 'Say "Log an expense" to Siri or assign to Back Tap.');
+                      }
+                    });
+                  }}
+                  style={{ alignSelf: 'center', marginTop: spacing.md }}
+                />
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    presentAddExpenseShortcut(({ status }) => {
+                      if (status === 'added') {
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        showSuccess('Siri Shortcut Added', 'Say "Log an expense" to Siri or assign to Back Tap.');
+                      }
+                    });
+                  }}
+                  style={[styles.siriButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
+                >
+                  <MaterialCommunityIcons name="microphone" size={16} color={colors.text} />
+                  <Text style={[styles.settingLabel, { marginBottom: 0 }]}>Add to Siri</Text>
+                </Pressable>
+              )}
+            </View>
+          </NeuCard>
+        </MotiView>
+      )}
+
       {/* Data */}
-      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 300 }}>
+      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 350 }}>
         <Text style={styles.sectionTitle}>Data</Text>
         <NeuCard padded={false}>
           <SettingsRow
@@ -215,7 +273,7 @@ export default function SettingsScreen() {
       </MotiView>
 
       {/* About */}
-      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 400 }}>
+      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 450 }}>
         <Text style={styles.sectionTitle}>About</Text>
         <NeuCard padded={false}>
           <SettingsRow icon="information-outline" label="Version" value="1.0.0" onPress={() => {}} showArrow={false} colors={colors} styles={styles} />
@@ -273,6 +331,10 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   currencySymbol: { fontSize: 18, fontWeight: '700', fontFamily: 'SpaceMono_700Bold', minWidth: 28, textAlign: 'center', color: colors.text },
   currencyCode: { fontSize: 14, fontWeight: '700', fontFamily: 'SpaceMono_700Bold', width: 36, color: colors.text },
   currencyName: { ...typography.bodySmall, flex: 1 },
+  siriSection: { gap: spacing.sm },
+  siriInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  siriDescription: { ...typography.caption, marginTop: 2 },
+  siriButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, alignSelf: 'center', marginTop: spacing.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: borderRadius.sm, borderWidth: 2 },
   premiumStatus: { alignItems: 'center', marginTop: spacing.xl },
   premiumStatusText: { ...typography.body, fontWeight: '700', color: colors.primary },
 });

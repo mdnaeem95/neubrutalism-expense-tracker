@@ -61,10 +61,12 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+          "androidAppId": "ca-app-pub-3113906121142395~8230323001",
+          "iosAppId": "ca-app-pub-3113906121142395~8230323001"
         }
-      ]
+      ],
+      "expo-quick-actions",
+      ["@config-plugins/react-native-siri-shortcut", ["com.ledgr.app.add-expense"]]
     ],
     "experiments": {
       "typedRoutes": true

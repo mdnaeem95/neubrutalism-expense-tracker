@@ -1,14 +1,16 @@
-import { NeuButton, NeuCard, NeuIconButton, NeuInput } from '@/components/ui';
+import { NeuButton, NeuCard, NeuIconButton, NeuInput, PiggyMascot } from '@/components/ui';
 import { useDialog } from '@/contexts/DialogContext';
 import { useTheme } from '@/lib/ThemeContext';
 import { borderRadius, PAYMENT_METHODS, spacing } from '@/lib/theme';
 import type { ThemeColors, ThemeTypography } from '@/lib/theme';
 import { showInterstitial } from '@/services/ads';
+import { donateAddExpenseShortcut } from '@/services/siriShortcuts';
 import { saveReceipt } from '@/lib/receipt';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
+import { useGamificationStore } from '@/stores/useGamificationStore';
 import type { PaymentMethod, RecurringFrequency } from '@/types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
@@ -36,7 +38,7 @@ export default function AddExpenseScreen() {
   const router = useRouter();
   const { addExpense, incrementAddCount } = useExpenseStore();
   const { categories } = useCategoryStore();
-  const { currencySymbol, defaultPaymentMethod } = useSettingsStore();
+  const { currencySymbol, defaultPaymentMethod, mascotEnabled } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
   const { colors, typography } = useTheme();
 
@@ -113,6 +115,8 @@ export default function AddExpenseScreen() {
     });
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    donateAddExpenseShortcut();
+    useGamificationStore.getState().recordExpenseAdded();
     setShowSuccess(true);
 
     // Check if should show interstitial
@@ -142,11 +146,15 @@ export default function AddExpenseScreen() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', damping: 20, stiffness: 150 }}
         >
-          <NeuCard color={colors.green} style={styles.successCard}>
-            <MaterialCommunityIcons name="check-circle" size={48} color={colors.green} />
-            <Text style={styles.successTitle}>Expense Added!</Text>
-            <Text style={styles.successText}>Successfully recorded</Text>
-          </NeuCard>
+          {mascotEnabled ? (
+            <PiggyMascot context="success" size="large" />
+          ) : (
+            <NeuCard color={colors.green} style={styles.successCard}>
+              <MaterialCommunityIcons name="check-circle" size={48} color={colors.green} />
+              <Text style={styles.successTitle}>Expense Added!</Text>
+              <Text style={styles.successText}>Successfully recorded</Text>
+            </NeuCard>
+          )}
         </MotiView>
       </View>
     );

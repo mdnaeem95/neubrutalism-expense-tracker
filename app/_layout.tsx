@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Stack } from 'expo-router';
+import { Platform } from 'react-native';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
@@ -15,15 +16,28 @@ import { initializeAds, loadInterstitial } from '@/services/ads';
 import { initializeSubscriptions } from '@/services/subscriptions';
 import { refreshNotifications } from '@/services/notifications';
 import { processRecurringExpenses } from '@/services/recurring';
+import { setupQuickActions } from '@/services/quickActions';
+import { useGamificationStore } from '@/stores/useGamificationStore';
+import { addShortcutListener, getInitialShortcut, ADD_EXPENSE_ACTIVITY_TYPE } from '@/services/siriShortcuts';
 import AnimatedSplash from '@/components/AnimatedSplash';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { DialogProvider } from '@/contexts/DialogContext';
 import { ThemeProvider, useTheme } from '@/lib/ThemeContext';
 
+// Quick actions routing — may not be available in Expo Go
+let useQuickActionRoutingHook: () => void = () => {};
+try {
+  const quickActionsRouter = require('expo-quick-actions/router');
+  useQuickActionRoutingHook = quickActionsRouter.useQuickActionRouting;
+} catch {
+  // Native module not available
+}
+
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutInner() {
   const { colors, isDark } = useTheme();
+  useQuickActionRoutingHook();
 
   return (
     <>
@@ -81,6 +95,8 @@ export default function RootLayout() {
         const generated = processRecurringExpenses();
         if (generated > 0) useExpenseStore.getState().loadExpenses();
         useBudgetStore.getState().loadBudgets();
+        await useGamificationStore.getState().loadGamification();
+        useGamificationStore.getState().checkStreakOnAppOpen();
         await useSubscriptionStore.getState().loadSubscriptionStatus();
         await initializeAds();
         loadInterstitial();
@@ -89,6 +105,7 @@ export default function RootLayout() {
         if (settings.notificationsEnabled || settings.budgetAlerts) {
           await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts);
         }
+        setupQuickActions();
       } catch (error) {
         console.error('Bootstrap error:', error);
       } finally {
@@ -98,6 +115,27 @@ export default function RootLayout() {
 
     bootstrap();
   }, []);
+
+  // Handle Siri shortcut invocation (iOS only)
+  useEffect(() => {
+    if (!addShortcutListener || !isReady) return;
+
+    const subscription = addShortcutListener(({ activityType }: any) => {
+      if (activityType === ADD_EXPENSE_ACTIVITY_TYPE) {
+        router.push('/(tabs)/add');
+      }
+    });
+
+    if (getInitialShortcut) {
+      getInitialShortcut().then((shortcut: any) => {
+        if (shortcut?.activityType === ADD_EXPENSE_ACTIVITY_TYPE) {
+          router.push('/(tabs)/add');
+        }
+      });
+    }
+
+    return () => { if (subscription?.remove) subscription.remove(); };
+  }, [isReady]);
 
   // Show AnimatedSplash until both animation and bootstrap are done
   if (!animationDone || !isReady || !fontsLoaded) {
