@@ -18,6 +18,8 @@ import { refreshNotifications } from '@/services/notifications';
 import { processRecurringExpenses } from '@/services/recurring';
 import { setupQuickActions } from '@/services/quickActions';
 import { useGamificationStore } from '@/stores/useGamificationStore';
+import { useIncomeStore } from '@/stores/useIncomeStore';
+import { useSavingsGoalStore } from '@/stores/useSavingsGoalStore';
 import { addShortcutListener, getInitialShortcut, ADD_EXPENSE_ACTIVITY_TYPE } from '@/services/siriShortcuts';
 import AnimatedSplash from '@/components/AnimatedSplash';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -65,6 +67,8 @@ function RootLayoutInner() {
         <Stack.Screen name="category/[id]" />
         <Stack.Screen name="budget/index" />
         <Stack.Screen name="budget/[id]" />
+        <Stack.Screen name="income/index" />
+        <Stack.Screen name="goals/index" />
       </Stack>
     </>
   );
@@ -95,6 +99,8 @@ export default function RootLayout() {
         const generated = processRecurringExpenses();
         if (generated > 0) useExpenseStore.getState().loadExpenses();
         useBudgetStore.getState().loadBudgets();
+        useIncomeStore.getState().loadIncome();
+        useSavingsGoalStore.getState().loadGoals();
         await useGamificationStore.getState().loadGamification();
         useGamificationStore.getState().checkStreakOnAppOpen();
         await useSubscriptionStore.getState().loadSubscriptionStatus();
@@ -102,8 +108,9 @@ export default function RootLayout() {
         loadInterstitial();
         await initializeSubscriptions();
         const settings = useSettingsStore.getState();
-        if (settings.notificationsEnabled || settings.budgetAlerts) {
-          await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts);
+        if (settings.notificationsEnabled || settings.budgetAlerts || settings.dailyReminderEnabled) {
+          const streak = useGamificationStore.getState().streak?.currentStreak ?? 0;
+          await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts, settings.dailyReminderEnabled, streak);
         }
         setupQuickActions();
       } catch (error) {

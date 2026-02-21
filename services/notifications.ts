@@ -132,7 +132,53 @@ export async function scheduleRecurringReminders() {
   }
 }
 
-export async function refreshNotifications(notificationsEnabled: boolean, budgetAlerts: boolean) {
+// --- Daily Log Reminder ---
+
+export async function scheduleDailyReminder(streak: number = 0) {
+  // Cancel existing daily reminder before rescheduling
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  for (const notif of scheduled) {
+    if (notif.content.data?.type === 'daily_reminder') {
+      await Notifications.cancelScheduledNotificationAsync(notif.identifier);
+    }
+  }
+
+  const body =
+    streak > 1
+      ? `Don't break your ${streak}-day streak! Log today's expenses.`
+      : streak === 1
+      ? "Don't break your streak! Log today's expenses."
+      : 'Have you logged your expenses today?';
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Ledgr Reminder',
+      body,
+      data: { type: 'daily_reminder' },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour: 20,
+      minute: 0,
+    },
+  });
+}
+
+export async function cancelDailyReminder() {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  for (const notif of scheduled) {
+    if (notif.content.data?.type === 'daily_reminder') {
+      await Notifications.cancelScheduledNotificationAsync(notif.identifier);
+    }
+  }
+}
+
+export async function refreshNotifications(
+  notificationsEnabled: boolean,
+  budgetAlerts: boolean,
+  dailyReminderEnabled: boolean = false,
+  streak: number = 0,
+) {
   const hasPermission = await requestNotificationPermissions();
   if (!hasPermission) return;
 
@@ -144,7 +190,13 @@ export async function refreshNotifications(notificationsEnabled: boolean, budget
     await scheduleBudgetAlerts();
   }
 
-  if (!notificationsEnabled && !budgetAlerts) {
+  if (dailyReminderEnabled) {
+    await scheduleDailyReminder(streak);
+  } else {
+    await cancelDailyReminder();
+  }
+
+  if (!notificationsEnabled && !budgetAlerts && !dailyReminderEnabled) {
     await cancelAllNotifications();
   }
 }

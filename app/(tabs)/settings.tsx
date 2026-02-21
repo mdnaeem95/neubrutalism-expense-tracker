@@ -3,7 +3,8 @@ import { useDialog } from '@/contexts/DialogContext';
 import type { ThemeBorders, ThemeColors, ThemeTypography } from '@/lib/theme';
 import { borderRadius, CURRENCIES, spacing } from '@/lib/theme';
 import { useTheme } from '@/lib/ThemeContext';
-import { requestNotificationPermissions, scheduleBudgetAlerts, scheduleRecurringReminders, cancelAllNotifications } from '@/services/notifications';
+import { requestNotificationPermissions, scheduleBudgetAlerts, scheduleRecurringReminders, cancelAllNotifications, scheduleDailyReminder, cancelDailyReminder } from '@/services/notifications';
+import { useGamificationStore } from '@/stores/useGamificationStore';
 import { presentAddExpenseShortcut, nativeSiriAvailable, AddToSiriButton, SiriButtonStyles, ADD_EXPENSE_SHORTCUT } from '@/services/siriShortcuts';
 import { useBudgetStore } from '@/stores/useBudgetStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
@@ -41,7 +42,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { colors, borders, shadows, typography } = useTheme();
   const {
-    currency, currencySymbol, notificationsEnabled, budgetAlerts, theme, gamificationEnabled, updateSetting,
+    currency, currencySymbol, notificationsEnabled, budgetAlerts, dailyReminderEnabled, theme, gamificationEnabled, updateSetting,
   } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
   const { expenses, clearAllExpenses } = useExpenseStore();
@@ -188,6 +189,22 @@ export default function SettingsScreen() {
                 if (!notificationsEnabled) await cancelAllNotifications();
               }
               updateSetting('budgetAlerts', v);
+            }}
+          />
+          <NeuSwitch
+            label="Daily Reminder"
+            description="Remind you to log expenses at 8pm"
+            value={dailyReminderEnabled}
+            onValueChange={async (v) => {
+              if (v) {
+                const granted = await requestNotificationPermissions();
+                if (!granted) return;
+                const streak = useGamificationStore.getState().streak?.currentStreak ?? 0;
+                await scheduleDailyReminder(streak);
+              } else {
+                await cancelDailyReminder();
+              }
+              updateSetting('dailyReminderEnabled', v);
             }}
           />
         </NeuCard>

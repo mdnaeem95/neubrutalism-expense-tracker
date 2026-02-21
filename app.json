@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ledgr",
     "slug": "ledgr",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "ledgr",
@@ -19,7 +19,7 @@
         "NSPhotoLibraryUsageDescription": "This app accesses your photos to attach receipt images to expenses.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "6"
+      "buildNumber": "7"
     },
     "android": {
       "adaptiveIcon": {

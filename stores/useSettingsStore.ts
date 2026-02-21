@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS: Settings = {
   hasCompletedOnboarding: false,
   notificationsEnabled: false,
   budgetAlerts: true,
+  dailyReminderEnabled: false,
   theme: 'system',
   gamificationEnabled: true,
 };
@@ -56,6 +57,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       hasCompletedOnboarding: state.hasCompletedOnboarding,
       notificationsEnabled: state.notificationsEnabled,
       budgetAlerts: state.budgetAlerts,
+      dailyReminderEnabled: state.dailyReminderEnabled,
       theme: state.theme,
       gamificationEnabled: state.gamificationEnabled,
     };

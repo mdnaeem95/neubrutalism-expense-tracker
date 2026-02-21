@@ -213,6 +213,33 @@ export const PAYMENT_METHODS = [
   { id: 'other', label: 'Other', icon: 'dots-horizontal' },
 ] as const;
 
+export const INCOME_SOURCES = [
+  { id: 'salary',      label: 'Salary',      icon: 'briefcase-outline',      color: '#4D96FF' },
+  { id: 'freelance',   label: 'Freelance',   icon: 'laptop',                 color: '#A855F7' },
+  { id: 'investment',  label: 'Investment',  icon: 'trending-up',            color: '#6BCB77' },
+  { id: 'side_hustle', label: 'Side Hustle', icon: 'rocket-launch-outline',  color: '#FB923C' },
+  { id: 'gift',        label: 'Gift',        icon: 'gift-outline',           color: '#FF6B9D' },
+  { id: 'refund',      label: 'Refund',      icon: 'cash-refund',            color: '#FFD93D' },
+  { id: 'other',       label: 'Other',       icon: 'dots-horizontal-circle', color: '#9CA3AF' },
+] as const;
+
+export const GOAL_ICONS = [
+  { id: 'piggy-bank-outline', label: 'General' },
+  { id: 'home-outline',       label: 'Home' },
+  { id: 'airplane',           label: 'Travel' },
+  { id: 'car',                label: 'Car' },
+  { id: 'school-outline',     label: 'Education' },
+  { id: 'laptop',             label: 'Tech' },
+  { id: 'medical-bag',        label: 'Emergency' },
+  { id: 'ring',               label: 'Wedding' },
+  { id: 'star-outline',       label: 'Other' },
+] as const;
+
+export const GOAL_COLORS = [
+  '#4ECDC4', '#4D96FF', '#A855F7', '#FB923C',
+  '#FF6B6B', '#FFD60A', '#6BCB77', '#FF6B9D',
+] as const;
+
 export const DEFAULT_CATEGORIES = [
   { name: 'Food & Dining', icon: 'food-fork-drink', color: '#FF6B9D' },
   { name: 'Transport', icon: 'car', color: '#4D96FF' },

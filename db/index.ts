@@ -59,6 +59,31 @@ export async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
     CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category_id);
     CREATE INDEX IF NOT EXISTS idx_budgets_category ON budgets(category_id);
+
+    CREATE TABLE IF NOT EXISTS income (
+      id TEXT PRIMARY KEY,
+      amount REAL NOT NULL,
+      source TEXT NOT NULL DEFAULT 'other',
+      description TEXT NOT NULL DEFAULT '',
+      date INTEGER NOT NULL,
+      notes TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_income_date ON income(date);
+
+    CREATE TABLE IF NOT EXISTS savings_goals (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      target_amount REAL NOT NULL,
+      current_amount REAL NOT NULL DEFAULT 0,
+      icon TEXT NOT NULL DEFAULT 'piggy-bank-outline',
+      color TEXT NOT NULL DEFAULT '#4ECDC4',
+      target_date INTEGER,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
   `);
 
   // Migration: add next_recurring_date column

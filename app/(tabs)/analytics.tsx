@@ -1,13 +1,14 @@
 import { NeuButton, NeuCard, NeuChip, NeuEmptyState, NeuProgressBar } from '@/components/ui';
 import { useTheme } from '@/lib/ThemeContext';
-import { borderRadius, PAYMENT_METHODS, spacing } from '@/lib/theme';
+import { borderRadius, INCOME_SOURCES, PAYMENT_METHODS, spacing } from '@/lib/theme';
 import type { ThemeBorders, ThemeColors, ThemeTypography } from '@/lib/theme';
 import { useBudgetStore } from '@/stores/useBudgetStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
+import { useIncomeStore } from '@/stores/useIncomeStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
-import type { ChartPeriod, SpendingByCategory } from '@/types';
+import type { ChartPeriod, IncomeBySource, IncomeSource, SpendingByCategory } from '@/types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { eachDayOfInterval, endOfMonth, endOfWeek, endOfYear, format, startOfMonth, startOfWeek, startOfYear, subMonths } from 'date-fns';
 import { useRouter } from 'expo-router';
@@ -22,6 +23,7 @@ export default function AnalyticsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { expenses } = useExpenseStore();
+  const { incomes } = useIncomeStore();
   const { categories } = useCategoryStore();
   const { formatAmount } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
@@ -150,6 +152,44 @@ export default function AnalyticsScreen() {
       .sort((a, b) => b.amount - a.amount);
   }, [periodExpenses, totalSpent]);
 
+  const periodIncome = useMemo(() =>
+    incomes
+      .filter((i) => i.date >= dateRange.start.getTime() && i.date <= dateRange.end.getTime())
+      .reduce((sum, i) => sum + i.amount, 0),
+    [incomes, dateRange]
+  );
+
+  const savingsRate = useMemo(() => {
+    if (periodIncome <= 0) return null;
+    return ((periodIncome - totalSpent) / periodIncome) * 100;
+  }, [periodIncome, totalSpent]);
+
+  const incomeBySource = useMemo((): IncomeBySource[] => {
+    const periodIncomes = incomes.filter(
+      (i) => i.date >= dateRange.start.getTime() && i.date <= dateRange.end.getTime()
+    );
+    const map = new Map<string, { total: number; count: number }>();
+    periodIncomes.forEach((i) => {
+      const existing = map.get(i.source) || { total: 0, count: 0 };
+      map.set(i.source, { total: existing.total + i.amount, count: existing.count + 1 });
+    });
+    return INCOME_SOURCES
+      .map((src) => {
+        const data = map.get(src.id) || { total: 0, count: 0 };
+        return {
+          source: src.id as IncomeSource,
+          label: src.label,
+          icon: src.icon,
+          color: src.color,
+          total: data.total,
+          percentage: periodIncome > 0 ? (data.total / periodIncome) * 100 : 0,
+          count: data.count,
+        };
+      })
+      .filter((s) => s.total > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [incomes, dateRange, periodIncome]);
+
   if (periodExpenses.length === 0) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -199,6 +239,31 @@ export default function AnalyticsScreen() {
           </View>
         </NeuCard>
       </MotiView>
+
+      {/* Savings Rate */}
+      {savingsRate !== null && (
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 10 }}>
+          <NeuCard color={savingsRate >= 0 ? colors.cardTintGreen : colors.cardTintRed} style={styles.savingsRateCard}>
+            <View style={styles.savingsRateRow}>
+              <MaterialCommunityIcons
+                name={savingsRate >= 0 ? 'piggy-bank-outline' : 'trending-down'}
+                size={22}
+                color={savingsRate >= 0 ? colors.green : colors.secondary}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.savingsRateLabel}>Savings Rate</Text>
+                <Text style={[styles.savingsRateValue, { color: savingsRate >= 0 ? colors.green : colors.secondary }]}>
+                  {savingsRate >= 0 ? '+' : ''}{savingsRate.toFixed(1)}%
+                </Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={styles.savingsRateDetail}>{formatAmount(Math.abs(periodIncome - totalSpent))}</Text>
+                <Text style={styles.savingsRateSubDetail}>{savingsRate >= 0 ? 'saved' : 'overspent'}</Text>
+              </View>
+            </View>
+          </NeuCard>
+        </MotiView>
+      )}
 
       {/* Monthly Comparison */}
       <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 50 }}>
@@ -321,6 +386,93 @@ export default function AnalyticsScreen() {
           ))}
         </NeuCard>
       </MotiView>
+
+      {/* Income Breakdown */}
+      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 250 }}>
+        <Text style={styles.sectionTitle}>Income Breakdown</Text>
+        {isPremium ? (
+          incomeBySource.length > 0 ? (
+            <NeuCard color={colors.cardTintGreen} style={styles.breakdownCard}>
+              <View style={styles.pieRow}>
+                {incomeBySource.map((src) => (
+                  <View key={src.source} style={styles.pieSegment}>
+                    <View style={[styles.pieBar, { width: `${Math.max(src.percentage, 5)}%`, backgroundColor: src.color }]} />
+                  </View>
+                ))}
+              </View>
+              {incomeBySource.map((src, index) => (
+                <MotiView key={src.source} from={{ opacity: 0, translateX: -20 }} animate={{ opacity: 1, translateX: 0 }} transition={{ type: 'timing', duration: 300, delay: 300 + index * 80 }}>
+                  <View style={styles.categoryRow}>
+                    <View style={[styles.catDot, { backgroundColor: src.color }]} />
+                    <MaterialCommunityIcons name={src.icon as any} size={20} color={src.color} />
+                    <View style={styles.catInfo}>
+                      <Text style={styles.catName}>{src.label}</Text>
+                      <Text style={styles.catCount}>{src.count} {src.count === 1 ? 'entry' : 'entries'}</Text>
+                    </View>
+                    <View style={styles.catAmountCol}>
+                      <Text style={[styles.catAmount, { color: colors.green }]}>+{formatAmount(src.total)}</Text>
+                      <Text style={styles.catPercent}>{src.percentage.toFixed(1)}%</Text>
+                    </View>
+                  </View>
+                </MotiView>
+              ))}
+            </NeuCard>
+          ) : (
+            <NeuCard color={colors.cardTintGreen} style={[styles.breakdownCard, { alignItems: 'center' }]}>
+              <MaterialCommunityIcons name="trending-up" size={32} color={colors.green} />
+              <Text style={[styles.catName, { marginTop: spacing.sm }]}>No income this period</Text>
+            </NeuCard>
+          )
+        ) : (
+          <NeuCard color={colors.cardTintGreen} style={[styles.breakdownCard, { alignItems: 'center' }]} onPress={() => router.push('/paywall')}>
+            <MaterialCommunityIcons name="lock-outline" size={32} color={colors.green} />
+            <Text style={[styles.sectionTitle, { marginTop: spacing.sm, marginBottom: spacing.xs }]}>Income Breakdown</Text>
+            <Text style={[styles.premiumDesc, { marginBottom: spacing.md }]}>See income by source with Pro</Text>
+            <NeuButton title="Upgrade to Pro" onPress={() => router.push('/paywall')} variant="primary" size="sm" />
+          </NeuCard>
+        )}
+      </MotiView>
+
+      {/* Income vs Expenses (Premium) */}
+      {isPremium && (
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 280 }}>
+          <Text style={styles.sectionTitle}>Income vs Expenses</Text>
+          <NeuCard color={colors.cardTintTeal} style={styles.comparisonCard}>
+            <View style={styles.comparisonBars}>
+              <View style={styles.comparisonBarCol}>
+                <View style={styles.comparisonBarTrack}>
+                  <MotiView
+                    from={{ height: 0 }}
+                    animate={{ height: periodIncome > 0 ? (periodIncome / Math.max(periodIncome, totalSpent, 1)) * 100 : 2 }}
+                    transition={{ type: 'timing', duration: 700, delay: 100 }}
+                    style={[styles.comparisonBarFill, { backgroundColor: colors.green }]}
+                  />
+                </View>
+                <Text style={[styles.comparisonBarAmount, { color: colors.green }]}>+{formatAmount(periodIncome)}</Text>
+                <Text style={styles.comparisonBarLabel}>Income</Text>
+              </View>
+              <View style={styles.comparisonBarCol}>
+                <View style={styles.comparisonBarTrack}>
+                  <MotiView
+                    from={{ height: 0 }}
+                    animate={{ height: totalSpent > 0 ? (totalSpent / Math.max(periodIncome, totalSpent, 1)) * 100 : 2 }}
+                    transition={{ type: 'timing', duration: 700, delay: 200 }}
+                    style={[styles.comparisonBarFill, { backgroundColor: colors.secondary }]}
+                  />
+                </View>
+                <Text style={[styles.comparisonBarAmount, { color: colors.secondary }]}>-{formatAmount(totalSpent)}</Text>
+                <Text style={styles.comparisonBarLabel}>Expenses</Text>
+              </View>
+            </View>
+            <View style={[styles.comparisonHeader, { marginTop: spacing.md, marginBottom: 0 }]}>
+              <Text style={styles.chartTitle}>Net</Text>
+              <Text style={[styles.comparisonBarAmount, { color: periodIncome >= totalSpent ? colors.green : colors.secondary }]}>
+                {periodIncome >= totalSpent ? '+' : ''}{formatAmount(periodIncome - totalSpent)}
+              </Text>
+            </View>
+          </NeuCard>
+        </MotiView>
+      )}
 
       {/* Smart Insights (Premium) */}
       {isPremium && smartInsights && (
@@ -457,6 +609,12 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   screenTitle: { ...typography.h1, marginTop: spacing.md, marginBottom: spacing.lg, paddingHorizontal: spacing.xl },
   periodRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   totalCard: { marginBottom: spacing.lg },
+  savingsRateCard: { marginBottom: spacing.lg },
+  savingsRateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  savingsRateLabel: { ...typography.caption, color: colors.textSecondary },
+  savingsRateValue: { fontSize: 22, fontWeight: '800', fontFamily: 'SpaceMono_700Bold' },
+  savingsRateDetail: { fontSize: 15, fontWeight: '700', color: colors.text, fontFamily: 'SpaceMono_700Bold' },
+  savingsRateSubDetail: { ...typography.caption, color: colors.textSecondary },
   totalLabel: { ...typography.caption, marginBottom: spacing.xs },
   totalAmount: { ...typography.amount },
   statsRow: { flexDirection: 'row', marginTop: spacing.lg, alignItems: 'center' },

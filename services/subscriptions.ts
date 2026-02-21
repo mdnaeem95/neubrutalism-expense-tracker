@@ -35,12 +35,15 @@ export const OFFERINGS = {
 
 export const PREMIUM_FEATURES = [
   { title: 'Unlimited Categories', description: 'Create custom categories', icon: 'folder-open-outline' },
-  { title: 'Advanced Analytics', description: 'Detailed charts & insights', icon: 'bar-chart-outline' },
+  { title: 'Unlimited Income Tracking', description: 'Track all income sources', icon: 'trending-up' },
+  { title: 'Income Analytics', description: 'Breakdown by source + vs expenses', icon: 'chart-bar' },
+  { title: 'Advanced Analytics', description: 'Detailed charts & insights', icon: 'chart-pie' },
   { title: 'Budget Tracking', description: 'Set & monitor budgets', icon: 'flag-outline' },
-  { title: 'Recurring Expenses', description: 'Track subscriptions', icon: 'repeat-outline' },
+  { title: 'Recurring Expenses', description: 'Track subscriptions', icon: 'repeat' },
   { title: 'Receipt Photos', description: 'Attach receipt images', icon: 'camera-outline' },
   { title: 'Export Data', description: 'Export to CSV', icon: 'share-outline' },
-  { title: 'No Ads', description: 'Ad-free experience', icon: 'ban-outline' },
+  { title: 'Unlimited Savings Goals', description: 'Set and track multiple financial goals', icon: 'piggy-bank-outline' },
+  { title: 'No Ads', description: 'Ad-free experience', icon: 'cancel' },
 ];
 
 export async function initializeSubscriptions() {

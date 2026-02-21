@@ -161,7 +161,7 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   headerRow: { flexDirection: 'row', marginTop: spacing.sm, marginBottom: spacing.md },
   hero: { alignItems: 'center', marginBottom: spacing.xl },
   heroIconWrap: { width: 80, height: 80, borderRadius: 24, backgroundColor: colors.primary + '20', alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
-  heroTitle: { ...typography.h1, fontSize: 40 },
+  heroTitle: { ...typography.h1, fontSize: 32 },
   heroSubtitle: { ...typography.body, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs },
   featuresCard: { marginBottom: spacing.xl },
   featureRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm, gap: spacing.md },

@@ -1,6 +1,41 @@
 export type PaymentMethod = 'cash' | 'card' | 'bank' | 'other';
 export type RecurringFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type BudgetPeriod = 'weekly' | 'monthly' | 'yearly';
+export type IncomeSource = 'salary' | 'freelance' | 'investment' | 'side_hustle' | 'gift' | 'refund' | 'other';
+
+export interface Income {
+  id: string;
+  amount: number;
+  source: IncomeSource;
+  description: string;
+  date: number;
+  notes: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface IncomeBySource {
+  source: IncomeSource;
+  label: string;
+  icon: string;
+  color: string;
+  total: number;
+  percentage: number;
+  count: number;
+}
+
+export interface SavingsGoal {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  icon: string;
+  color: string;
+  targetDate: number | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export type DateFilter = 'today' | 'week' | 'month' | 'year' | 'custom';
 export type ChartPeriod = 'week' | 'month' | 'year';
 export type Theme = 'light' | 'dark' | 'system';
@@ -63,6 +98,7 @@ export interface Settings {
   hasCompletedOnboarding: boolean;
   notificationsEnabled: boolean;
   budgetAlerts: boolean;
+  dailyReminderEnabled: boolean;
   theme: Theme;
   gamificationEnabled: boolean;
 }

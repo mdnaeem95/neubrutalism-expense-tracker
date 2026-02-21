@@ -2,17 +2,18 @@ import { NeuButton, NeuCard, NeuIconButton, NeuInput } from '@/components/ui';
 import XPGainAnimation from '@/components/XPGainAnimation';
 import { useDialog } from '@/contexts/DialogContext';
 import { useTheme } from '@/lib/ThemeContext';
-import { borderRadius, PAYMENT_METHODS, spacing } from '@/lib/theme';
+import { borderRadius, INCOME_SOURCES, PAYMENT_METHODS, spacing } from '@/lib/theme';
 import type { ThemeColors, ThemeTypography } from '@/lib/theme';
 import { showInterstitial } from '@/services/ads';
 import { donateAddExpenseShortcut } from '@/services/siriShortcuts';
 import { saveReceipt } from '@/lib/receipt';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
+import { useIncomeStore } from '@/stores/useIncomeStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
-import type { PaymentMethod, RecurringFrequency } from '@/types';
+import type { IncomeSource, PaymentMethod, RecurringFrequency } from '@/types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
@@ -33,11 +34,13 @@ const expenseSchema = z.object({
 });
 
 type FormData = z.infer<typeof expenseSchema>;
+type AddMode = 'expense' | 'income';
 
 export default function AddExpenseScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { addExpense, incrementAddCount } = useExpenseStore();
+  const { addIncome, canAddIncome, getMonthlyCount } = useIncomeStore();
   const { categories } = useCategoryStore();
   const { currencySymbol, defaultPaymentMethod, gamificationEnabled } = useSettingsStore();
   const { lastXPGain } = useGamificationStore();
@@ -46,7 +49,9 @@ export default function AddExpenseScreen() {
 
   const styles = useMemo(() => createStyles(colors, typography), [colors, typography]);
 
+  const [mode, setMode] = useState<AddMode>('expense');
   const [selectedCategory, setSelectedCategory] = useState(categories[0]?.id || '');
+  const [selectedSource, setSelectedSource] = useState<IncomeSource>('salary');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(defaultPaymentMethod);
   const [isRecurring, setIsRecurring] = useState(false);
@@ -55,6 +60,8 @@ export default function AddExpenseScreen() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { showDialog } = useDialog();
+
+  const monthlyIncomeCount = getMonthlyCount();
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     defaultValues: { amount: '', description: '', notes: '' },
@@ -141,6 +148,43 @@ export default function AddExpenseScreen() {
     }, 1500);
   }, [selectedCategory, selectedDate, paymentMethod, isRecurring, recurringFreq, isPremium, categories, defaultPaymentMethod, addExpense, incrementAddCount, reset, receiptUri]);
 
+  const onSubmitIncome = useCallback(async (data: FormData) => {
+    const amount = parseFloat(data.amount);
+    if (isNaN(amount) || amount <= 0) return;
+
+    if (!canAddIncome(isPremium)) {
+      showDialog({
+        title: 'Monthly Limit Reached',
+        message: `Free accounts can log 5 income entries per month. Upgrade to Pro for unlimited income tracking.`,
+        icon: 'lock-outline',
+        iconColor: colors.accent,
+        buttons: [
+          { text: 'Upgrade to Pro', style: 'default', onPress: () => router.push('/paywall') },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      });
+      return;
+    }
+
+    addIncome({
+      amount,
+      source: selectedSource,
+      description: data.description || '',
+      date: selectedDate,
+      notes: data.notes || undefined,
+    });
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setShowSuccess(true);
+
+    setTimeout(() => {
+      setShowSuccess(false);
+      reset();
+      setSelectedSource('salary');
+      setSelectedDate(new Date());
+    }, 1500);
+  }, [selectedSource, selectedDate, isPremium, addIncome, canAddIncome, reset, showDialog, colors, router]);
+
   if (showSuccess) {
     return (
       <View style={[styles.successContainer, { paddingTop: insets.top }]}>
@@ -149,13 +193,13 @@ export default function AddExpenseScreen() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', damping: 20, stiffness: 150 }}
         >
-          <NeuCard color={colors.green} style={styles.successCard}>
+          <NeuCard color={mode === 'income' ? colors.cardTintGreen : colors.green} style={styles.successCard}>
             <MaterialCommunityIcons name="check-circle" size={48} color={colors.green} />
-            <Text style={styles.successTitle}>Expense Added!</Text>
+            <Text style={styles.successTitle}>{mode === 'income' ? 'Income Added!' : 'Expense Added!'}</Text>
             <Text style={styles.successText}>Successfully recorded</Text>
           </NeuCard>
         </MotiView>
-        {gamificationEnabled && lastXPGain && (
+        {gamificationEnabled && lastXPGain && mode === 'expense' && (
           <XPGainAnimation label={lastXPGain.label} />
         )}
       </View>
@@ -170,11 +214,29 @@ export default function AddExpenseScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.screenTitle}>Add Expense</Text>
+        <Text style={styles.screenTitle}>{mode === 'income' ? 'Add Income' : 'Add Expense'}</Text>
+
+        {/* Mode Toggle */}
+        <View style={styles.modeToggle}>
+          <Pressable
+            onPress={() => { setMode('expense'); reset(); }}
+            style={[styles.modeBtn, mode === 'expense' && styles.modeBtnExpenseActive]}
+          >
+            <MaterialCommunityIcons name="minus-circle-outline" size={16} color={mode === 'expense' ? colors.text : colors.textSecondary} />
+            <Text style={[styles.modeBtnText, mode === 'expense' && styles.modeBtnTextActive]}>EXPENSE</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => { setMode('income'); reset(); }}
+            style={[styles.modeBtn, mode === 'income' && styles.modeBtnIncomeActive]}
+          >
+            <MaterialCommunityIcons name="plus-circle-outline" size={16} color={mode === 'income' ? colors.text : colors.textSecondary} />
+            <Text style={[styles.modeBtnText, mode === 'income' && styles.modeBtnTextActive]}>INCOME</Text>
+          </Pressable>
+        </View>
 
         {/* Amount Input */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400 }}>
-          <NeuCard color={colors.cardTintPink} style={styles.amountCard}>
+          <NeuCard color={mode === 'income' ? colors.cardTintGreen : colors.cardTintPink} style={styles.amountCard}>
             <Text style={styles.amountLabel}>Amount</Text>
             <View style={styles.amountRow}>
               <Text style={styles.currencySymbol}>{currencySymbol}</Text>
@@ -199,27 +261,59 @@ export default function AddExpenseScreen() {
           </NeuCard>
         </MotiView>
 
-        {/* Category Picker */}
+        {/* Category / Source Picker */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 100 }}>
-          <Text style={styles.sectionLabel}>Category</Text>
-          <View style={styles.categoryGrid}>
-            {categories.map((cat) => (
-              <Pressable
-                key={cat.id}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setSelectedCategory(cat.id);
-                }}
-                style={[
-                  styles.categoryItem,
-                  selectedCategory === cat.id && { backgroundColor: cat.color + '30', borderColor: cat.color },
-                ]}
-              >
-                <MaterialCommunityIcons name={cat.icon as any} size={22} color={selectedCategory === cat.id ? cat.color : colors.textSecondary} />
-                <Text style={styles.categoryName} numberOfLines={1}>{cat.name}</Text>
-              </Pressable>
-            ))}
-          </View>
+          {mode === 'expense' ? (
+            <>
+              <Text style={styles.sectionLabel}>Category</Text>
+              <View style={styles.categoryGrid}>
+                {categories.map((cat) => (
+                  <Pressable
+                    key={cat.id}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setSelectedCategory(cat.id);
+                    }}
+                    style={[
+                      styles.categoryItem,
+                      selectedCategory === cat.id && { backgroundColor: cat.color + '30', borderColor: cat.color },
+                    ]}
+                  >
+                    <MaterialCommunityIcons name={cat.icon as any} size={22} color={selectedCategory === cat.id ? cat.color : colors.textSecondary} />
+                    <Text style={styles.categoryName} numberOfLines={1}>{cat.name}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={styles.sectionLabel}>Income Source</Text>
+              <View style={styles.categoryGrid}>
+                {INCOME_SOURCES.map((src) => (
+                  <Pressable
+                    key={src.id}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setSelectedSource(src.id as IncomeSource);
+                    }}
+                    style={[
+                      styles.categoryItem,
+                      selectedSource === src.id && { backgroundColor: src.color + '30', borderColor: src.color },
+                    ]}
+                  >
+                    <MaterialCommunityIcons name={src.icon as any} size={22} color={selectedSource === src.id ? src.color : colors.textSecondary} />
+                    <Text style={styles.categoryName} numberOfLines={1}>{src.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              {!isPremium && (
+                <View style={styles.freeHint}>
+                  <MaterialCommunityIcons name="information-outline" size={14} color={colors.textLight} />
+                  <Text style={styles.freeHintText}>{Math.max(0, 5 - monthlyIncomeCount)} of 5 free entries remaining this month</Text>
+                </View>
+              )}
+            </>
+          )}
         </MotiView>
 
         {/* Description */}
@@ -281,8 +375,8 @@ export default function AddExpenseScreen() {
           )}
         </MotiView>
 
-        {/* Payment Method */}
-        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 300 }}>
+        {/* Payment Method — expense only */}
+        {mode === 'expense' && <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 300 }}>
           <Text style={styles.sectionLabel}>Payment Method</Text>
           <View style={styles.paymentRow}>
             {PAYMENT_METHODS.map((pm) => (
@@ -308,9 +402,10 @@ export default function AddExpenseScreen() {
               </Pressable>
             ))}
           </View>
-        </MotiView>
+        </MotiView>}
 
-        {/* Recurring Toggle */}
+        {/* Recurring Toggle — expense only */}
+        {mode === 'expense' && <>
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 350 }}>
           <Pressable
             onPress={() => {
@@ -347,7 +442,7 @@ export default function AddExpenseScreen() {
               ))}
             </View>
           )}
-        </MotiView>
+        </MotiView></>}
 
         {/* Notes */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 400 }}>
@@ -368,8 +463,8 @@ export default function AddExpenseScreen() {
           />
         </MotiView>
 
-        {/* Receipt Photo */}
-        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 450 }}>
+        {/* Receipt Photo — expense only */}
+        {mode === 'expense' && <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 450 }}>
           <Text style={styles.sectionLabel}>Receipt (optional)</Text>
           {receiptUri ? (
             <View style={styles.receiptPreview}>
@@ -391,12 +486,12 @@ export default function AddExpenseScreen() {
               <Text style={styles.receiptPlaceholderText}>Add Receipt Photo</Text>
             </Pressable>
           )}
-        </MotiView>
+        </MotiView>}
 
         {/* Save Button */}
         <NeuButton
-          title="Save Expense"
-          onPress={handleSubmit(onSubmit)}
+          title={mode === 'income' ? 'Save Income' : 'Save Expense'}
+          onPress={mode === 'income' ? handleSubmit(onSubmitIncome) : handleSubmit(onSubmit)}
           variant="primary"
           size="lg"
           fullWidth
@@ -476,6 +571,20 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
     borderRadius: borderRadius.md, backgroundColor: colors.surface, marginBottom: spacing.lg, gap: spacing.xs,
   },
   receiptPlaceholderText: { ...typography.bodySmall, color: colors.textLight },
+  modeToggle: {
+    flexDirection: 'row', borderWidth: 2.5, borderColor: colors.border,
+    borderRadius: borderRadius.lg, overflow: 'hidden', marginBottom: spacing.xl,
+  },
+  modeBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, paddingVertical: spacing.sm, backgroundColor: colors.surface,
+  },
+  modeBtnExpenseActive: { backgroundColor: colors.cardTintPink },
+  modeBtnIncomeActive: { backgroundColor: colors.cardTintGreen },
+  modeBtnText: { fontSize: 12, fontWeight: '700', color: colors.textSecondary, fontFamily: 'SpaceMono_700Bold' },
+  modeBtnTextActive: { color: colors.text },
+  freeHint: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: -spacing.md, marginBottom: spacing.xl },
+  freeHintText: { ...typography.caption, color: colors.textLight },
   successContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   successCard: { alignItems: 'center', paddingVertical: spacing['3xl'], paddingHorizontal: spacing['4xl'] },
   successTitle: { ...typography.h2, marginBottom: spacing.xs },
