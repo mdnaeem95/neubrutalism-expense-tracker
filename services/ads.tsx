@@ -74,7 +74,29 @@ export function loadInterstitial() {
 }
 
 export async function showInterstitial(): Promise<boolean> {
-  if (!nativeAdsAvailable || !interstitialLoaded || !interstitialAd) return false;
+  if (!nativeAdsAvailable || !interstitialAd) return false;
+
+  // If not loaded yet, wait up to 3 seconds for it
+  if (!interstitialLoaded) {
+    const loaded = await new Promise<boolean>((resolve) => {
+      let resolved = false;
+      const checkInterval = setInterval(() => {
+        if (interstitialLoaded) {
+          resolved = true;
+          clearInterval(checkInterval);
+          resolve(true);
+        }
+      }, 200);
+      setTimeout(() => {
+        if (!resolved) {
+          clearInterval(checkInterval);
+          resolve(false);
+        }
+      }, 3000);
+    });
+    if (!loaded) return false;
+  }
+
   interstitialAd.show();
   interstitialLoaded = false;
   return true;

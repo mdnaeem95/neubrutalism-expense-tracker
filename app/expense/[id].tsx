@@ -8,6 +8,9 @@ import { useTheme } from '@/lib/ThemeContext';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
+import { useTemplateStore } from '@/stores/useTemplateStore';
+import { useTagStore } from '@/stores/useTagStore';
+import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import type { PaymentMethod } from '@/types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
@@ -26,9 +29,13 @@ export default function ExpenseDetailScreen() {
   const { getExpenseById, updateExpense, deleteExpense } = useExpenseStore();
   const { categories } = useCategoryStore();
   const { formatAmount, currencySymbol } = useSettingsStore();
-  const { showError, showConfirm, showDialog } = useDialog();
+  const { addTemplate, canAddTemplate } = useTemplateStore();
+  const { getTagsForExpense } = useTagStore();
+  const { isPremium } = useSubscriptionStore();
+  const { showError, showConfirm, showDialog, showSuccess } = useDialog();
 
   const expense = useMemo(() => getExpenseById(id), [id]);
+  const expenseTags = useMemo(() => id ? getTagsForExpense(id) : [], [id]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editAmount, setEditAmount] = useState(expense?.amount.toString() || '');
@@ -127,6 +134,24 @@ export default function ExpenseDetailScreen() {
         router.back();
       },
     });
+  };
+
+  const handleSaveAsTemplate = () => {
+    if (!canAddTemplate(isPremium)) {
+      router.push('/paywall');
+      return;
+    }
+    const name = expense.description || category?.name || 'Template';
+    addTemplate({
+      name,
+      amount: expense.amount,
+      categoryId: expense.categoryId,
+      description: expense.description,
+      paymentMethod: (expense.paymentMethod as PaymentMethod) || 'cash',
+      notes: expense.notes,
+    });
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    showSuccess('Template Saved', `"${name}" added to your quick templates.`);
   };
 
   const category = categories.find((c) => c.id === (isEditing ? editCategory : expense.categoryId));
@@ -250,6 +275,33 @@ export default function ExpenseDetailScreen() {
           </NeuCard>
         )}
 
+        {/* Tags (view mode) */}
+        {!isEditing && expenseTags.length > 0 && (
+          <View style={styles.tagsSection}>
+            <Text style={styles.fieldLabel}>Tags</Text>
+            <View style={styles.tagsRow}>
+              {expenseTags.map((tag) => (
+                <View key={tag.id} style={[styles.tagChip, { backgroundColor: tag.color + '20', borderColor: tag.color }]}>
+                  <Text style={[styles.tagChipText, { color: tag.color }]}>{tag.name}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Save as Template (view mode) */}
+        {!isEditing && (
+          <NeuButton
+            title="Save as Template"
+            onPress={handleSaveAsTemplate}
+            variant="outline"
+            size="md"
+            fullWidth
+            icon={<MaterialCommunityIcons name="lightning-bolt-outline" size={18} color={colors.text} />}
+            style={{ marginTop: spacing.lg }}
+          />
+        )}
+
         {/* Receipt (view mode) */}
         {!isEditing && expense.receiptUri && (
           <>
@@ -344,6 +396,10 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
     paddingVertical: spacing.sm, backgroundColor: colors.overlayLight,
   },
   receiptOverlayText: { color: '#FFF', fontSize: 12, fontWeight: '600', fontFamily: 'SpaceMono_400Regular' },
+  tagsSection: { marginTop: spacing.lg },
+  tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  tagChip: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: borderRadius.full, borderWidth: 1.5 },
+  tagChipText: { fontSize: 12, fontWeight: '600', fontFamily: 'SpaceMono_400Regular' },
   modalBackdrop: { flex: 1, backgroundColor: colors.overlayHeavy, justifyContent: 'center' },
   modalCloseRow: { position: 'absolute', top: 0, left: spacing.xl, zIndex: 10 },
   modalImage: { flex: 1, width: '100%' },

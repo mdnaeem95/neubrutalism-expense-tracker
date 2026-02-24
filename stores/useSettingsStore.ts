@@ -12,8 +12,10 @@ const DEFAULT_SETTINGS: Settings = {
   notificationsEnabled: false,
   budgetAlerts: true,
   dailyReminderEnabled: false,
+  dailySummaryEnabled: false,
   theme: 'system',
   gamificationEnabled: true,
+  lastBackupDate: null,
 };
 
 interface SettingsState extends Settings {
@@ -58,8 +60,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       notificationsEnabled: state.notificationsEnabled,
       budgetAlerts: state.budgetAlerts,
       dailyReminderEnabled: state.dailyReminderEnabled,
+      dailySummaryEnabled: state.dailySummaryEnabled,
       theme: state.theme,
       gamificationEnabled: state.gamificationEnabled,
+      lastBackupDate: state.lastBackupDate,
     };
     await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   },

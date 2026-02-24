@@ -7,12 +7,15 @@ import type { ThemeColors, ThemeTypography } from '@/lib/theme';
 import { showInterstitial } from '@/services/ads';
 import { donateAddExpenseShortcut } from '@/services/siriShortcuts';
 import { saveReceipt } from '@/lib/receipt';
+import { isOCRAvailable, extractReceiptData } from '@/services/ocr';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
 import { useIncomeStore } from '@/stores/useIncomeStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
+import { useTemplateStore } from '@/stores/useTemplateStore';
+import { useTagStore } from '@/stores/useTagStore';
 import type { IncomeSource, PaymentMethod, RecurringFrequency } from '@/types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
@@ -45,6 +48,8 @@ export default function AddExpenseScreen() {
   const { currencySymbol, defaultPaymentMethod, gamificationEnabled } = useSettingsStore();
   const { lastXPGain } = useGamificationStore();
   const { isPremium } = useSubscriptionStore();
+  const { templates: savedTemplates } = useTemplateStore();
+  const { tags: allTags } = useTagStore();
   const { colors, typography } = useTheme();
 
   const styles = useMemo(() => createStyles(colors, typography), [colors, typography]);
@@ -59,6 +64,8 @@ export default function AddExpenseScreen() {
   const [receiptUri, setReceiptUri] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isScanning, setIsScanning] = useState(false);
   const { showDialog } = useDialog();
 
   const monthlyIncomeCount = getMonthlyCount();
@@ -107,11 +114,29 @@ export default function AddExpenseScreen() {
     });
   }, [showDialog, colors]);
 
+  const handleScanReceipt = useCallback(async () => {
+    if (!receiptUri || !isOCRAvailable()) return;
+    setIsScanning(true);
+    try {
+      const data = await extractReceiptData(receiptUri);
+      if (data.amount) {
+        reset({ amount: data.amount.toString(), description: data.merchant || '', notes: '' });
+      } else if (data.merchant) {
+        reset({ amount: '', description: data.merchant, notes: '' });
+      }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      // OCR failed silently
+    } finally {
+      setIsScanning(false);
+    }
+  }, [receiptUri, reset]);
+
   const onSubmit = useCallback(async (data: FormData) => {
     const amount = parseFloat(data.amount);
     if (isNaN(amount) || amount <= 0) return;
 
-    addExpense({
+    const newExpense = addExpense({
       amount,
       categoryId: selectedCategory,
       description: data.description || '',
@@ -122,6 +147,11 @@ export default function AddExpenseScreen() {
       notes: data.notes || undefined,
       receiptUri: receiptUri || undefined,
     });
+
+    // Save tags for this expense
+    if (selectedTags.length > 0 && newExpense) {
+      useTagStore.getState().setExpenseTags(newExpense.id, selectedTags);
+    }
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     donateAddExpenseShortcut();
@@ -145,8 +175,9 @@ export default function AddExpenseScreen() {
       setSelectedDate(new Date());
       setIsRecurring(false);
       setReceiptUri(null);
+      setSelectedTags([]);
     }, 1500);
-  }, [selectedCategory, selectedDate, paymentMethod, isRecurring, recurringFreq, isPremium, categories, defaultPaymentMethod, addExpense, incrementAddCount, reset, receiptUri]);
+  }, [selectedCategory, selectedDate, paymentMethod, isRecurring, recurringFreq, isPremium, categories, defaultPaymentMethod, addExpense, incrementAddCount, reset, receiptUri, selectedTags]);
 
   const onSubmitIncome = useCallback(async (data: FormData) => {
     const amount = parseFloat(data.amount);
@@ -234,6 +265,31 @@ export default function AddExpenseScreen() {
           </Pressable>
         </View>
 
+        {/* Quick Templates */}
+        {mode === 'expense' && savedTemplates.length > 0 && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md, marginHorizontal: -spacing.xl }} contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: spacing.sm }}>
+            {savedTemplates.map((t) => {
+              const cat = categories.find((c) => c.id === t.categoryId);
+              return (
+                <Pressable
+                  key={t.id}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    reset({ amount: t.amount.toString(), description: t.description, notes: t.notes || '' });
+                    setSelectedCategory(t.categoryId);
+                    setPaymentMethod(t.paymentMethod);
+                  }}
+                  style={[styles.templateChip, { borderColor: cat?.color || colors.border }]}
+                >
+                  <MaterialCommunityIcons name={(cat?.icon || 'cube-outline') as any} size={14} color={cat?.color || colors.textSecondary} />
+                  <Text style={styles.templateChipText} numberOfLines={1}>{t.name}</Text>
+                  <Text style={styles.templateChipAmount}>{currencySymbol}{t.amount.toFixed(0)}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        )}
+
         {/* Amount Input */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400 }}>
           <NeuCard color={mode === 'income' ? colors.cardTintGreen : colors.cardTintPink} style={styles.amountCard}>
@@ -315,6 +371,37 @@ export default function AddExpenseScreen() {
             </>
           )}
         </MotiView>
+
+        {/* Tags */}
+        {mode === 'expense' && allTags.length > 0 && (
+          <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 150 }}>
+            <Text style={styles.sectionLabel}>Tags</Text>
+            <View style={styles.categoryGrid}>
+              {allTags.map((tag) => {
+                const isSelected = selectedTags.includes(tag.id);
+                return (
+                  <Pressable
+                    key={tag.id}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setSelectedTags((prev) =>
+                        isSelected ? prev.filter((id) => id !== tag.id) : [...prev, tag.id]
+                      );
+                    }}
+                    style={[
+                      styles.paymentItem,
+                      { flex: 0, paddingHorizontal: spacing.md },
+                      isSelected && { backgroundColor: tag.color + '30', borderColor: tag.color },
+                    ]}
+                  >
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: tag.color }} />
+                    <Text style={[styles.paymentLabel, isSelected && styles.paymentLabelSelected]}>{tag.name}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </MotiView>
+        )}
 
         {/* Description */}
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 200 }}>
@@ -479,6 +566,18 @@ export default function AddExpenseScreen() {
                 color={colors.secondary}
                 style={styles.receiptRemoveBtn}
               />
+              {isPremium && isOCRAvailable() && (
+                <NeuButton
+                  title={isScanning ? 'Scanning...' : 'Scan Receipt'}
+                  onPress={handleScanReceipt}
+                  variant="outline"
+                  size="sm"
+                  loading={isScanning}
+                  disabled={isScanning}
+                  icon={<MaterialCommunityIcons name="text-recognition" size={16} color={colors.text} />}
+                  style={{ marginTop: spacing.sm }}
+                />
+              )}
             </View>
           ) : (
             <Pressable onPress={handlePickReceipt} style={styles.receiptPlaceholder}>
@@ -585,6 +684,12 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
   modeBtnTextActive: { color: colors.text },
   freeHint: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: -spacing.md, marginBottom: spacing.xl },
   freeHintText: { ...typography.caption, color: colors.textLight },
+  templateChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    borderWidth: 2.5, borderRadius: borderRadius.md, backgroundColor: colors.surface,
+  },
+  templateChipText: { fontSize: 12, fontWeight: '600', color: colors.text, fontFamily: 'SpaceMono_400Regular', maxWidth: 80 },
+  templateChipAmount: { fontSize: 12, fontWeight: '700', color: colors.textSecondary, fontFamily: 'SpaceMono_700Bold' },
   successContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   successCard: { alignItems: 'center', paddingVertical: spacing['3xl'], paddingHorizontal: spacing['4xl'] },
   successTitle: { ...typography.h2, marginBottom: spacing.xs },

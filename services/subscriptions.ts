@@ -34,15 +34,15 @@ export const OFFERINGS = {
 };
 
 export const PREMIUM_FEATURES = [
-  { title: 'Unlimited Categories', description: 'Create custom categories', icon: 'folder-open-outline' },
-  { title: 'Unlimited Income Tracking', description: 'Track all income sources', icon: 'trending-up' },
-  { title: 'Income Analytics', description: 'Breakdown by source + vs expenses', icon: 'chart-bar' },
+  { title: 'Subscription Tracker', description: 'Monitor recurring costs', icon: 'repeat' },
+  { title: 'Backup & Restore', description: 'Never lose your data', icon: 'cloud-upload-outline' },
+  { title: 'CSV Import', description: 'Import from bank exports', icon: 'file-import-outline' },
+  { title: 'Monthly Reports', description: 'Shareable financial recaps', icon: 'file-chart-outline' },
+  { title: 'Debt Tracker', description: 'Track loans & payoff plans', icon: 'credit-card-outline' },
+  { title: 'Unlimited Tags', description: 'Organize with custom labels', icon: 'tag-outline' },
+  { title: 'Unlimited Templates', description: 'Quick-add frequent expenses', icon: 'lightning-bolt-outline' },
   { title: 'Advanced Analytics', description: 'Detailed charts & insights', icon: 'chart-pie' },
-  { title: 'Budget Tracking', description: 'Set & monitor budgets', icon: 'flag-outline' },
-  { title: 'Recurring Expenses', description: 'Track subscriptions', icon: 'repeat' },
   { title: 'Receipt Photos', description: 'Attach receipt images', icon: 'camera-outline' },
-  { title: 'Export Data', description: 'Export to CSV', icon: 'share-outline' },
-  { title: 'Unlimited Savings Goals', description: 'Set and track multiple financial goals', icon: 'piggy-bank-outline' },
   { title: 'No Ads', description: 'Ad-free experience', icon: 'cancel' },
 ];
 

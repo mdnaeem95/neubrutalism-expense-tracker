@@ -10,7 +10,7 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import type { ChartPeriod, IncomeBySource, IncomeSource, SpendingByCategory } from '@/types';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { eachDayOfInterval, endOfMonth, endOfWeek, endOfYear, format, startOfMonth, startOfWeek, startOfYear, subMonths } from 'date-fns';
+import { eachDayOfInterval, endOfMonth, endOfWeek, endOfYear, format, getDate, getDaysInMonth, startOfMonth, startOfWeek, startOfYear, subMonths } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import React, { useMemo, useState } from 'react';
@@ -92,6 +92,18 @@ export default function AnalyticsScreen() {
     const nonZeroDays = dailySpending.filter((d) => d.amount > 0);
     return nonZeroDays.length > 0 ? totalSpent / nonZeroDays.length : 0;
   }, [dailySpending, totalSpent]);
+
+  const forecast = useMemo(() => {
+    if (period !== 'month') return null;
+    const now = new Date();
+    const dayOfMonth = getDate(now);
+    if (dayOfMonth < 3 || totalSpent === 0) return null;
+    const daysInMonth = getDaysInMonth(now);
+    const remainingDays = daysInMonth - dayOfMonth;
+    const dailyAvg = totalSpent / dayOfMonth;
+    const projectedTotal = totalSpent + dailyAvg * remainingDays;
+    return { projectedTotal, dailyAvg, remainingDays };
+  }, [period, totalSpent]);
 
   const budgetProgress = useMemo(() => getBudgetsWithProgress(), [expenses]);
 
@@ -349,6 +361,46 @@ export default function AnalyticsScreen() {
         </NeuCard>
       </MotiView>
 
+      {/* Spending Forecast */}
+      {forecast && (
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 150 }}>
+          <NeuCard color={colors.cardTintYellow} style={styles.chartCard}>
+            <View style={styles.comparisonHeader}>
+              <Text style={styles.chartTitle}>End of Month Forecast</Text>
+              {budgetProgress.length > 0 && (() => {
+                const overall = budgetProgress.find((b) => !b.categoryName);
+                if (!overall) return null;
+                const willExceed = forecast.projectedTotal > overall.amount;
+                return (
+                  <View style={[styles.changeBadge, { backgroundColor: willExceed ? colors.cardTintRed : colors.cardTintGreen }]}>
+                    <MaterialCommunityIcons name={willExceed ? 'alert-circle-outline' : 'check-circle-outline'} size={14} color={willExceed ? colors.error : colors.green} />
+                    <Text style={[styles.changeText, { color: willExceed ? colors.error : colors.green }]}>
+                      {willExceed ? 'Over Budget' : 'On Track'}
+                    </Text>
+                  </View>
+                );
+              })()}
+            </View>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{formatAmount(forecast.projectedTotal)}</Text>
+                <Text style={styles.statLabel}>Projected</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{formatAmount(forecast.dailyAvg)}</Text>
+                <Text style={styles.statLabel}>Daily Avg</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{forecast.remainingDays}</Text>
+                <Text style={styles.statLabel}>Days Left</Text>
+              </View>
+            </View>
+          </NeuCard>
+        </MotiView>
+      )}
+
       {/* Category Breakdown */}
       <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 200 }}>
         <Text style={styles.sectionTitle}>By Category</Text>
@@ -581,6 +633,21 @@ export default function AnalyticsScreen() {
               </View>
             ))}
           </NeuCard>
+        </MotiView>
+      )}
+
+      {/* Monthly Report */}
+      {isPremium && (
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 350 }}>
+          <NeuButton
+            title="Monthly Report"
+            onPress={() => router.push('/report')}
+            variant="accent"
+            size="md"
+            fullWidth
+            icon="file-chart-outline"
+            style={{ marginBottom: spacing.lg }}
+          />
         </MotiView>
       )}
 

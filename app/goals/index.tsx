@@ -38,8 +38,8 @@ export default function GoalsScreen() {
   // Form state
   const [title, setTitle] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState(GOAL_ICONS[0].id);
-  const [selectedColor, setSelectedColor] = useState(GOAL_COLORS[0]);
+  const [selectedIcon, setSelectedIcon] = useState<string>(GOAL_ICONS[0].id);
+  const [selectedColor, setSelectedColor] = useState<string>(GOAL_COLORS[0]);
   const [contributionAmount, setContributionAmount] = useState('');
   const [useTargetDate, setUseTargetDate] = useState(false);
   const [targetDate, setTargetDate] = useState(new Date());

@@ -3,7 +3,12 @@ import { useDialog } from '@/contexts/DialogContext';
 import type { ThemeBorders, ThemeColors, ThemeTypography } from '@/lib/theme';
 import { borderRadius, CURRENCIES, spacing } from '@/lib/theme';
 import { useTheme } from '@/lib/ThemeContext';
-import { requestNotificationPermissions, scheduleBudgetAlerts, scheduleRecurringReminders, cancelAllNotifications, scheduleDailyReminder, cancelDailyReminder } from '@/services/notifications';
+import { requestNotificationPermissions, scheduleBudgetAlerts, scheduleRecurringReminders, cancelAllNotifications, scheduleDailyReminder, cancelDailyReminder, scheduleDailySummary, cancelDailySummary } from '@/services/notifications';
+import { useIncomeStore } from '@/stores/useIncomeStore';
+import { useSavingsGoalStore } from '@/stores/useSavingsGoalStore';
+import { useDebtStore } from '@/stores/useDebtStore';
+import { useTagStore } from '@/stores/useTagStore';
+import { useTemplateStore } from '@/stores/useTemplateStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { presentAddExpenseShortcut, nativeSiriAvailable, AddToSiriButton, SiriButtonStyles, ADD_EXPENSE_SHORTCUT } from '@/services/siriShortcuts';
 import { useBudgetStore } from '@/stores/useBudgetStore';
@@ -42,7 +47,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { colors, borders, shadows, typography } = useTheme();
   const {
-    currency, currencySymbol, notificationsEnabled, budgetAlerts, dailyReminderEnabled, theme, gamificationEnabled, updateSetting,
+    currency, currencySymbol, notificationsEnabled, budgetAlerts, dailyReminderEnabled, dailySummaryEnabled, theme, gamificationEnabled, updateSetting,
   } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
   const { expenses, clearAllExpenses } = useExpenseStore();
@@ -56,12 +61,15 @@ export default function SettingsScreen() {
   const handleClearData = () => {
     showConfirm({
       title: 'Clear All Data',
-      message: 'This will permanently delete all your expenses, categories, and budgets. This action cannot be undone.',
+      message: 'This will permanently delete all your expenses, categories, budgets, debts, tags, and templates. This action cannot be undone.',
       confirmLabel: 'Clear All',
       onConfirm: () => {
         clearAllExpenses();
         clearAllBudgets();
         resetCategories();
+        useDebtStore.getState().clearAllDebts();
+        useTagStore.getState().clearAllTags();
+        useTemplateStore.getState().clearAllTemplates();
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         showSuccess('Data Cleared', 'All data has been removed.');
       },
@@ -153,6 +161,20 @@ export default function SettingsScreen() {
             if (!isPremium) { router.push('/paywall'); return; }
             router.push('/budget');
           }} color={colors.green} colors={colors} styles={styles} />
+          <View style={styles.divider} />
+          <SettingsRow icon="repeat" label="Subscriptions" onPress={() => {
+            if (!isPremium) { router.push('/paywall'); return; }
+            router.push('/subscriptions');
+          }} color={colors.blue} colors={colors} styles={styles} />
+          <View style={styles.divider} />
+          <SettingsRow icon="credit-card-outline" label="Debts & Loans" onPress={() => {
+            if (!isPremium) { router.push('/paywall'); return; }
+            router.push('/debts');
+          }} color={colors.secondary} colors={colors} styles={styles} />
+          <View style={styles.divider} />
+          <SettingsRow icon="trophy-outline" label="Achievements" onPress={() => {
+            router.push('/achievements');
+          }} color={colors.accent} colors={colors} styles={styles} />
         </NeuCard>
       </MotiView>
 
@@ -205,6 +227,21 @@ export default function SettingsScreen() {
                 await cancelDailyReminder();
               }
               updateSetting('dailyReminderEnabled', v);
+            }}
+          />
+          <NeuSwitch
+            label="Daily Summary"
+            description="Get a spending summary at 9pm"
+            value={dailySummaryEnabled}
+            onValueChange={async (v) => {
+              if (v) {
+                const granted = await requestNotificationPermissions();
+                if (!granted) return;
+                await scheduleDailySummary();
+              } else {
+                await cancelDailySummary();
+              }
+              updateSetting('dailySummaryEnabled', v);
             }}
           />
         </NeuCard>
@@ -278,6 +315,30 @@ export default function SettingsScreen() {
           />
           <View style={styles.divider} />
           <SettingsRow
+            icon="file-import-outline"
+            label="Import CSV"
+            onPress={() => {
+              if (!isPremium) { router.push('/paywall'); return; }
+              router.push('/import');
+            }}
+            color={colors.green}
+            colors={colors}
+            styles={styles}
+          />
+          <View style={styles.divider} />
+          <SettingsRow
+            icon="cloud-upload-outline"
+            label="Backup & Restore"
+            onPress={() => {
+              if (!isPremium) { router.push('/paywall'); return; }
+              router.push('/backup');
+            }}
+            color={colors.purple}
+            colors={colors}
+            styles={styles}
+          />
+          <View style={styles.divider} />
+          <SettingsRow
             icon="delete-outline"
             label="Clear All Data"
             onPress={handleClearData}
@@ -293,7 +354,7 @@ export default function SettingsScreen() {
       <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 450 }}>
         <Text style={styles.sectionTitle}>About</Text>
         <NeuCard padded={false}>
-          <SettingsRow icon="information-outline" label="Version" value="1.0.0" onPress={() => {}} showArrow={false} colors={colors} styles={styles} />
+          <SettingsRow icon="information-outline" label="Version" value="1.3.0" onPress={() => {}} showArrow={false} colors={colors} styles={styles} />
           <View style={styles.divider} />
           <SettingsRow icon="file-document-outline" label="Privacy Policy" onPress={() => {
             WebBrowser.openBrowserAsync('https://mdnaeem95.github.io/neubrutalism-expense-tracker/privacy.html');

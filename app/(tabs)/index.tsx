@@ -13,11 +13,15 @@ import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useSavingsGoalStore } from '@/stores/useSavingsGoalStore';
+import { useDebtStore } from '@/stores/useDebtStore';
 import { NeuCard, NeuProgressBar, NeuBadge, NeuEmptyState, NeuButton } from '@/components/ui';
 import XPCard from '@/components/XPCard';
 import LevelUpCelebration from '@/components/LevelUpCelebration';
+import InsightCard from '@/components/InsightCard';
 import CategoryIcon from '@/components/CategoryIcon';
 import { AdBanner } from '@/services/ads';
+import { generateInsights } from '@/services/insights';
+import { ACHIEVEMENTS } from '@/services/achievements';
 import { spacing, borderRadius } from '@/lib/theme';
 import { useTheme } from '@/lib/ThemeContext';
 import type { ThemeColors, ThemeBorders, ThemeTypography } from '@/lib/theme';
@@ -27,12 +31,14 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { expenses, getMonthlyTotal } = useExpenseStore();
-  const { getOverallBudgetProgress } = useBudgetStore();
+  const { getOverallBudgetProgress, getBudgetsWithProgress } = useBudgetStore();
   const { formatAmount, gamificationEnabled } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
   const { categories } = useCategoryStore();
-  const { pendingLevelUp, dismissLevelUp } = useGamificationStore();
+  const { pendingLevelUp, dismissLevelUp, earnedAchievements, streak } = useGamificationStore();
   const { goals } = useSavingsGoalStore();
+  const { debts, getTotalDebt } = useDebtStore();
+  const { budgets } = useBudgetStore();
   const { colors, borders, typography } = useTheme();
 
   const styles = useMemo(() => createStyles(colors, borders, typography), [colors, borders, typography]);
@@ -51,6 +57,29 @@ export default function DashboardScreen() {
   }, [currentMonthTotal, lastMonthTotal]);
   const recentExpenses = useMemo(() => expenses.slice(0, 5), [expenses]);
   const activeGoals = useMemo(() => goals.filter((g) => g.currentAmount < g.targetAmount).slice(0, 2), [goals]);
+
+  const budgetsWithProgress = useMemo(() => getBudgetsWithProgress(), [expenses]);
+  const insights = useMemo(() => generateInsights(
+    expenses, budgetsWithProgress, currentMonthIncome, 0, streak?.currentStreak ?? 0, expenses.length,
+  ), [expenses, budgetsWithProgress, currentMonthIncome, streak]);
+
+  const recurringExpenses = useMemo(() => expenses.filter((e) => e.isRecurring === 1), [expenses]);
+  const monthlyRecurringCost = useMemo(() => {
+    let total = 0;
+    for (const e of recurringExpenses) {
+      switch (e.recurringFrequency) {
+        case 'daily': total += e.amount * 30; break;
+        case 'weekly': total += e.amount * 4.33; break;
+        case 'monthly': total += e.amount; break;
+        case 'yearly': total += e.amount / 12; break;
+        default: total += e.amount;
+      }
+    }
+    return total;
+  }, [recurringExpenses]);
+
+  const totalDebt = useMemo(() => getTotalDebt(), [debts]);
+  const earnedCount = useMemo(() => Object.keys(earnedAchievements).length, [earnedAchievements]);
 
   const categoryBreakdown = useMemo((): SpendingByCategory[] => {
     const map = new Map<string, number>();
@@ -108,6 +137,15 @@ export default function DashboardScreen() {
       {gamificationEnabled && (
         <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 50 }}>
           <XPCard />
+        </MotiView>
+      )}
+
+      {/* Smart Insights */}
+      {insights.length > 0 && (
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 75 }}>
+          {insights.map((insight, i) => (
+            <InsightCard key={insight.id} insight={insight} index={i} />
+          ))}
         </MotiView>
       )}
 
@@ -191,6 +229,38 @@ export default function DashboardScreen() {
             </View>
           </NeuCard>
         )}
+      </MotiView>
+
+      {/* Quick Widgets Row */}
+      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 500, delay: 185 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.widgetScroll}>
+          {/* Subscriptions Widget */}
+          {recurringExpenses.length > 0 && (
+            <NeuCard color={colors.cardTintBlue} style={styles.widgetCard} onPress={() => router.push('/subscriptions')}>
+              <MaterialCommunityIcons name="repeat" size={20} color={colors.blue} />
+              <Text style={styles.widgetValue}>{formatAmount(monthlyRecurringCost)}</Text>
+              <Text style={styles.widgetLabel}>{recurringExpenses.length} subscription{recurringExpenses.length !== 1 ? 's' : ''}/mo</Text>
+            </NeuCard>
+          )}
+
+          {/* Debt Widget */}
+          {debts.length > 0 && (
+            <NeuCard color={colors.cardTintPink} style={styles.widgetCard} onPress={() => router.push('/debts')}>
+              <MaterialCommunityIcons name="credit-card-outline" size={20} color={colors.secondary} />
+              <Text style={styles.widgetValue}>{formatAmount(totalDebt)}</Text>
+              <Text style={styles.widgetLabel}>Total Debt</Text>
+            </NeuCard>
+          )}
+
+          {/* Achievements Widget */}
+          {gamificationEnabled && (
+            <NeuCard color={colors.cardTintYellow} style={styles.widgetCard} onPress={() => router.push('/achievements')}>
+              <MaterialCommunityIcons name="trophy-outline" size={20} color={colors.orange} />
+              <Text style={styles.widgetValue}>{earnedCount}/{ACHIEVEMENTS.length}</Text>
+              <Text style={styles.widgetLabel}>Badges Earned</Text>
+            </NeuCard>
+          )}
+        </ScrollView>
       </MotiView>
 
       {/* Budget Progress */}
@@ -318,4 +388,8 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   goalIconCircle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   goalTitle: { fontSize: 13, fontWeight: '700', color: colors.text, fontFamily: 'SpaceMono_700Bold' },
   goalSaved: { fontSize: 13, fontWeight: '700', color: colors.text, fontFamily: 'SpaceMono_700Bold' },
+  widgetScroll: { paddingBottom: spacing.lg, gap: spacing.md },
+  widgetCard: { width: 130, alignItems: 'center', paddingVertical: spacing.md, paddingHorizontal: spacing.sm, gap: 4 },
+  widgetValue: { fontSize: 15, fontWeight: '800', color: colors.text, fontFamily: 'SpaceMono_700Bold' },
+  widgetLabel: { fontSize: 10, fontWeight: '600', color: colors.textSecondary, fontFamily: 'SpaceMono_400Regular', textAlign: 'center' },
 });

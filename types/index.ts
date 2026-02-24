@@ -40,6 +40,102 @@ export type DateFilter = 'today' | 'week' | 'month' | 'year' | 'custom';
 export type ChartPeriod = 'week' | 'month' | 'year';
 export type Theme = 'light' | 'dark' | 'system';
 
+// Debts
+export interface Debt {
+  id: string;
+  name: string;
+  totalAmount: number;
+  remainingAmount: number;
+  interestRate: number;
+  minimumPayment: number;
+  dueDate: number | null;
+  icon: string;
+  color: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+// Tags
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: number;
+}
+
+export interface ExpenseTag {
+  expenseId: string;
+  tagId: string;
+}
+
+// Templates
+export interface Template {
+  id: string;
+  name: string;
+  amount: number;
+  categoryId: string;
+  description: string;
+  paymentMethod: PaymentMethod;
+  notes: string | null;
+  createdAt: number;
+}
+
+// Insights
+export type InsightType =
+  | 'spending_increase'
+  | 'spending_decrease'
+  | 'budget_projection'
+  | 'biggest_expense'
+  | 'savings_comparison'
+  | 'streak_milestone';
+
+export interface Insight {
+  id: string;
+  type: InsightType;
+  title: string;
+  message: string;
+  icon: string;
+  color: string;
+  priority: number;
+}
+
+// Achievements
+export type AchievementId =
+  | 'expense_10' | 'expense_50' | 'expense_100' | 'expense_500'
+  | 'streak_7' | 'streak_14' | 'streak_30' | 'streak_60' | 'streak_90'
+  | 'budget_1mo' | 'budget_3mo' | 'budget_6mo'
+  | 'category_5'
+  | 'first_goal_completed';
+
+export interface Achievement {
+  id: AchievementId;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  threshold: number;
+  earned: boolean;
+  earnedAt: number | null;
+}
+
+// Backup
+export interface BackupData {
+  version: string;
+  timestamp: number;
+  categories: any[];
+  expenses: any[];
+  budgets: any[];
+  income: any[];
+  savingsGoals: any[];
+  debts: any[];
+  tags: any[];
+  expenseTags: any[];
+  templates: any[];
+  settings: any;
+  gamification: any;
+  achievements: any;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -99,8 +195,10 @@ export interface Settings {
   notificationsEnabled: boolean;
   budgetAlerts: boolean;
   dailyReminderEnabled: boolean;
+  dailySummaryEnabled: boolean;
   theme: Theme;
   gamificationEnabled: boolean;
+  lastBackupDate: number | null;
 }
 
 export interface SpendingByCategory {

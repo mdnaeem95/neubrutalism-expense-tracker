@@ -86,6 +86,50 @@ export async function initializeDatabase() {
     );
   `);
 
+  // v1.3.0 tables
+  sqlite.execSync(`
+    CREATE TABLE IF NOT EXISTS debts (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      total_amount REAL NOT NULL,
+      remaining_amount REAL NOT NULL,
+      interest_rate REAL NOT NULL DEFAULT 0,
+      minimum_payment REAL NOT NULL DEFAULT 0,
+      due_date INTEGER,
+      icon TEXT NOT NULL DEFAULT 'credit-card-outline',
+      color TEXT NOT NULL DEFAULT '#EF4444',
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS tags (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      color TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS expense_tags (
+      expense_id TEXT NOT NULL REFERENCES expenses(id),
+      tag_id TEXT NOT NULL REFERENCES tags(id),
+      PRIMARY KEY (expense_id, tag_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS templates (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      amount REAL NOT NULL,
+      category_id TEXT NOT NULL REFERENCES categories(id),
+      description TEXT NOT NULL DEFAULT '',
+      payment_method TEXT NOT NULL DEFAULT 'cash',
+      notes TEXT,
+      created_at INTEGER NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_expense_tags_expense ON expense_tags(expense_id);
+    CREATE INDEX IF NOT EXISTS idx_expense_tags_tag ON expense_tags(tag_id);
+  `);
+
   // Migration: add next_recurring_date column
   try {
     sqlite.execSync('ALTER TABLE expenses ADD COLUMN next_recurring_date INTEGER;');

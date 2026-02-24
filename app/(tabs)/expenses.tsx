@@ -8,6 +8,7 @@ import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useSubscriptionStore } from '@/stores/useSubscriptionStore';
+import { useTagStore } from '@/stores/useTagStore';
 import type { DateFilter, ExpenseWithCategory } from '@/types';
 import { AdBanner } from '@/services/ads';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -44,13 +45,22 @@ export default function ExpensesScreen() {
   const { isPremium } = useSubscriptionStore();
   const { showConfirm } = useDialog();
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null);
+  const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
+  const { tags, getTagsForExpense } = useTagStore();
   const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
   const openSwipeableId = useRef<string | null>(null);
   const { colors, borders, typography } = useTheme();
 
   const styles = useMemo(() => createStyles(colors, borders, typography), [colors, borders, typography]);
 
-  const filteredExpenses = useMemo(() => getFilteredExpenses(), [filters, useExpenseStore.getState().expenses]);
+  const filteredExpenses = useMemo(() => {
+    const base = getFilteredExpenses();
+    if (!selectedTagFilter) return base;
+    return base.filter((e) => {
+      const eTags = getTagsForExpense(e.id);
+      return eTags.some((t) => t.id === selectedTagFilter);
+    });
+  }, [filters, useExpenseStore.getState().expenses, selectedTagFilter]);
 
   const groupedExpenses = useMemo(() => {
     const groups: { title: string; data: ExpenseWithCategory[] }[] = [];
@@ -85,7 +95,8 @@ export default function ExpensesScreen() {
   type FilterItem =
     | { type: 'date'; label: string; value: DateFilter }
     | { type: 'divider' }
-    | { type: 'category'; id: string | null; name: string; icon: string; color: string };
+    | { type: 'category'; id: string | null; name: string; icon: string; color: string }
+    | { type: 'tag'; id: string | null; name: string; color: string };
 
   const filterItems = useMemo((): FilterItem[] => {
     const items: FilterItem[] = [];
@@ -93,8 +104,13 @@ export default function ExpensesScreen() {
     items.push({ type: 'divider' });
     items.push({ type: 'category', id: null, name: 'All', icon: 'view-grid-outline', color: colors.accent });
     categories.forEach(c => items.push({ type: 'category', id: c.id, name: c.name, icon: c.icon, color: c.color }));
+    if (tags.length > 0) {
+      items.push({ type: 'divider' });
+      items.push({ type: 'tag', id: null, name: 'All Tags', color: colors.orange });
+      tags.forEach(t => items.push({ type: 'tag', id: t.id, name: t.name, color: t.color }));
+    }
     return items;
-  }, [categories, colors]);
+  }, [categories, tags, colors]);
 
   const closePreviousSwipeable = useCallback((currentId: string) => {
     if (openSwipeableId.current && openSwipeableId.current !== currentId) {
@@ -193,7 +209,7 @@ export default function ExpensesScreen() {
       <FlatList
         horizontal
         data={filterItems}
-        keyExtractor={(item, i) => item.type === 'divider' ? 'divider' : item.type === 'date' ? item.value : (item.id || 'all')}
+        keyExtractor={(item, i) => item.type === 'divider' ? `divider-${i}` : item.type === 'date' ? item.value : item.type === 'tag' ? `tag-${item.id || 'all'}` : (item.id || 'all')}
         showsHorizontalScrollIndicator={false}
         style={styles.filterList}
         contentContainerStyle={styles.filterListContent}
@@ -205,6 +221,16 @@ export default function ExpensesScreen() {
               selected={filters.dateFilter === item.value}
               onPress={() => setFilter('dateFilter', item.value)}
               color={colors.primary}
+              size="sm"
+            />
+          );
+          if (item.type === 'tag') return (
+            <NeuChip
+              label={item.name}
+              icon={<MaterialCommunityIcons name="tag-outline" size={14} color={selectedTagFilter === item.id ? colors.text : item.color} />}
+              selected={selectedTagFilter === item.id}
+              onPress={() => setSelectedTagFilter(item.id)}
+              color={item.color}
               size="sm"
             />
           );
@@ -257,8 +283,8 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   screenTitle: { ...typography.h1 },
   totalText: { ...typography.h3, color: colors.secondary },
   searchContainer: { paddingHorizontal: spacing.xl },
-  filterList: { flexGrow: 0, marginBottom: spacing.sm },
-  filterListContent: { paddingHorizontal: spacing.xl, gap: spacing.sm, alignItems: 'center' },
+  filterList: { flexGrow: 0, height: 44, marginBottom: spacing.sm },
+  filterListContent: { paddingHorizontal: spacing.xl, gap: spacing.md, alignItems: 'center' },
   filterDivider: { width: 1.5, height: 24, backgroundColor: colors.border + '20', marginHorizontal: spacing.xs },
   listContent: { paddingHorizontal: spacing.xl, paddingBottom: 120 },
   sectionHeader: { paddingVertical: spacing.sm, marginTop: spacing.sm },

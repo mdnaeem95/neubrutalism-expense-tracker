@@ -20,6 +20,9 @@ import { setupQuickActions } from '@/services/quickActions';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 import { useIncomeStore } from '@/stores/useIncomeStore';
 import { useSavingsGoalStore } from '@/stores/useSavingsGoalStore';
+import { useDebtStore } from '@/stores/useDebtStore';
+import { useTagStore } from '@/stores/useTagStore';
+import { useTemplateStore } from '@/stores/useTemplateStore';
 import { addShortcutListener, getInitialShortcut, ADD_EXPENSE_ACTIVITY_TYPE } from '@/services/siriShortcuts';
 import AnimatedSplash from '@/components/AnimatedSplash';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -69,6 +72,21 @@ function RootLayoutInner() {
         <Stack.Screen name="budget/[id]" />
         <Stack.Screen name="income/index" />
         <Stack.Screen name="goals/index" />
+        <Stack.Screen name="subscriptions/index" />
+        <Stack.Screen name="debts/index" />
+        <Stack.Screen name="achievements/index" />
+        <Stack.Screen
+          name="backup/index"
+          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen
+          name="import/index"
+          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen
+          name="report/index"
+          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
       </Stack>
     </>
   );
@@ -101,6 +119,9 @@ export default function RootLayout() {
         useBudgetStore.getState().loadBudgets();
         useIncomeStore.getState().loadIncome();
         useSavingsGoalStore.getState().loadGoals();
+        useDebtStore.getState().loadDebts();
+        useTagStore.getState().loadTags();
+        useTemplateStore.getState().loadTemplates();
         await useGamificationStore.getState().loadGamification();
         useGamificationStore.getState().checkStreakOnAppOpen();
         await useSubscriptionStore.getState().loadSubscriptionStatus();
@@ -108,9 +129,9 @@ export default function RootLayout() {
         loadInterstitial();
         await initializeSubscriptions();
         const settings = useSettingsStore.getState();
-        if (settings.notificationsEnabled || settings.budgetAlerts || settings.dailyReminderEnabled) {
+        if (settings.notificationsEnabled || settings.budgetAlerts || settings.dailyReminderEnabled || settings.dailySummaryEnabled) {
           const streak = useGamificationStore.getState().streak?.currentStreak ?? 0;
-          await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts, settings.dailyReminderEnabled, streak);
+          await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts, settings.dailyReminderEnabled, streak, settings.dailySummaryEnabled);
         }
         setupQuickActions();
       } catch (error) {

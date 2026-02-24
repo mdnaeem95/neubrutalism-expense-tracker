@@ -173,11 +173,70 @@ export async function cancelDailyReminder() {
   }
 }
 
+// --- Daily Summary ---
+
+export async function scheduleDailySummary() {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  for (const notif of scheduled) {
+    if (notif.content.data?.type === 'daily_summary') {
+      await Notifications.cancelScheduledNotificationAsync(notif.identifier);
+    }
+  }
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const allExpenses = db.select().from(expenses).all();
+  const todayExpenses = allExpenses.filter(
+    (e) => e.date >= todayStart.getTime() && e.date <= todayEnd.getTime()
+  );
+  const todayTotal = todayExpenses.reduce((sum, e) => sum + (e.amount ?? 0), 0);
+  const txCount = todayExpenses.length;
+
+  const allBudgets = db.select().from(budgets).all();
+  const overallBudget = allBudgets.find((b) => !b.categoryId);
+  let budgetMsg = '';
+  if (overallBudget) {
+    const monthStart = startOfMonth(new Date()).getTime();
+    const monthEnd = endOfMonth(new Date()).getTime();
+    const monthSpent = allExpenses
+      .filter((e) => e.date >= monthStart && e.date <= monthEnd)
+      .reduce((sum, e) => sum + (e.amount ?? 0), 0);
+    const pct = overallBudget.amount > 0 ? ((monthSpent / overallBudget.amount) * 100).toFixed(0) : '0';
+    budgetMsg = ` Budget: ${pct}% used.`;
+  }
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Daily Summary',
+      body: `Today you spent $${todayTotal.toFixed(2)} across ${txCount} transaction${txCount !== 1 ? 's' : ''}.${budgetMsg}`,
+      data: { type: 'daily_summary' },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour: 21,
+      minute: 0,
+    },
+  });
+}
+
+export async function cancelDailySummary() {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  for (const notif of scheduled) {
+    if (notif.content.data?.type === 'daily_summary') {
+      await Notifications.cancelScheduledNotificationAsync(notif.identifier);
+    }
+  }
+}
+
 export async function refreshNotifications(
   notificationsEnabled: boolean,
   budgetAlerts: boolean,
   dailyReminderEnabled: boolean = false,
   streak: number = 0,
+  dailySummaryEnabled: boolean = false,
 ) {
   const hasPermission = await requestNotificationPermissions();
   if (!hasPermission) return;
@@ -196,7 +255,13 @@ export async function refreshNotifications(
     await cancelDailyReminder();
   }
 
-  if (!notificationsEnabled && !budgetAlerts && !dailyReminderEnabled) {
+  if (dailySummaryEnabled) {
+    await scheduleDailySummary();
+  } else {
+    await cancelDailySummary();
+  }
+
+  if (!notificationsEnabled && !budgetAlerts && !dailyReminderEnabled && !dailySummaryEnabled) {
     await cancelAllNotifications();
   }
 }

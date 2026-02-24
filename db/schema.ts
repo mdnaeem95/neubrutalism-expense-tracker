@@ -62,3 +62,40 @@ export const savingsGoals = sqliteTable('savings_goals', {
   createdAt:     integer('created_at').notNull(),
   updatedAt:     integer('updated_at').notNull(),
 });
+
+export const debts = sqliteTable('debts', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  totalAmount: real('total_amount').notNull(),
+  remainingAmount: real('remaining_amount').notNull(),
+  interestRate: real('interest_rate').notNull().default(0),
+  minimumPayment: real('minimum_payment').notNull().default(0),
+  dueDate: integer('due_date'),
+  icon: text('icon').notNull().default('credit-card-outline'),
+  color: text('color').notNull().default('#EF4444'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export const tags = sqliteTable('tags', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  color: text('color').notNull(),
+  createdAt: integer('created_at').notNull(),
+});
+
+export const expenseTags = sqliteTable('expense_tags', {
+  expenseId: text('expense_id').notNull().references(() => expenses.id),
+  tagId: text('tag_id').notNull().references(() => tags.id),
+});
+
+export const templates = sqliteTable('templates', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  amount: real('amount').notNull(),
+  categoryId: text('category_id').notNull().references(() => categories.id),
+  description: text('description').notNull().default(''),
+  paymentMethod: text('payment_method').notNull().default('cash'),
+  notes: text('notes'),
+  createdAt: integer('created_at').notNull(),
+});

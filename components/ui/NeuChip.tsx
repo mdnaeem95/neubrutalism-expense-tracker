@@ -67,6 +67,7 @@ const createStyles = (colors: ThemeColors) =>
     chip: {
       flexDirection: 'row',
       alignItems: 'center',
+      flexShrink: 0,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
       borderWidth: 2.5,
@@ -75,8 +76,9 @@ const createStyles = (colors: ThemeColors) =>
       backgroundColor: colors.surface,
     },
     chipSmall: {
-      paddingHorizontal: spacing.sm,
-      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      minHeight: 36,
     },
     unselected: {
       backgroundColor: colors.surface,
@@ -88,9 +90,11 @@ const createStyles = (colors: ThemeColors) =>
       fontFamily: 'SpaceMono_700Bold',
       textTransform: 'uppercase',
       letterSpacing: 1,
+      flexShrink: 0,
     },
     labelSmall: {
-      fontSize: 12,
+      fontSize: 11,
+      lineHeight: 16,
       fontFamily: 'SpaceMono_400Regular',
     },
     selectedLabel: {

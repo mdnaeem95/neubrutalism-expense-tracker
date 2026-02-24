@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format, differenceInCalendarDays, parseISO } from 'date-fns';
-import type { GamificationData, XPData } from '@/types';
+import type { GamificationData, XPData, AchievementId } from '@/types';
 import { calculateXPData, XP_REWARDS } from '@/types';
+import { checkAchievements } from '@/services/achievements';
 
 const GAMIFICATION_KEY = 'gamification_data';
+const ACHIEVEMENTS_KEY = 'earned_achievements';
 
 const DEFAULT_DATA: GamificationData = {
   streak: { currentStreak: 0, longestStreak: 0, lastLogDate: null },
@@ -23,11 +25,15 @@ interface GamificationState extends GamificationData {
   pendingLevelUp: number | null;
   lastXPGain: { amount: number; label: string } | null;
   xpData: XPData;
+  earnedAchievements: Record<string, number>;
+  pendingAchievement: AchievementId | null;
   loadGamification: () => Promise<void>;
   recordExpenseAdded: () => void;
   checkStreakOnAppOpen: () => void;
   dismissLevelUp: () => void;
   dismissXPGain: () => void;
+  checkAndAwardAchievements: (budgetMonthsUnder: number, categoriesUsedThisMonth: number, completedGoals: number) => void;
+  dismissAchievement: () => void;
 }
 
 export const useGamificationStore = create<GamificationState>((set, get) => ({
@@ -36,10 +42,16 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
   pendingLevelUp: null,
   lastXPGain: null,
   xpData: calculateXPData(0),
+  earnedAchievements: {},
+  pendingAchievement: null,
 
   loadGamification: async () => {
     try {
-      const stored = await AsyncStorage.getItem(GAMIFICATION_KEY);
+      const [stored, achievementsStored] = await Promise.all([
+        AsyncStorage.getItem(GAMIFICATION_KEY),
+        AsyncStorage.getItem(ACHIEVEMENTS_KEY),
+      ]);
+      const earned = achievementsStored ? JSON.parse(achievementsStored) : {};
       if (stored) {
         const parsed = JSON.parse(stored) as Partial<GamificationData> & { shownMilestones?: number[] };
         // Migration: old data had shownMilestones + no XP fields
@@ -52,10 +64,11 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
           currentLevel: xpData.currentLevel,
           shownLevelUps: parsed.shownLevelUps ?? [],
           xpData,
+          earnedAchievements: earned,
           isLoaded: true,
         });
       } else {
-        set({ isLoaded: true, xpData: calculateXPData(0) });
+        set({ isLoaded: true, xpData: calculateXPData(0), earnedAchievements: earned });
       }
     } catch {
       set({ isLoaded: true, xpData: calculateXPData(0) });
@@ -150,5 +163,37 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
 
   dismissXPGain: () => {
     set({ lastXPGain: null });
+  },
+
+  checkAndAwardAchievements: (budgetMonthsUnder, categoriesUsedThisMonth, completedGoals) => {
+    const { totalExpenseCount, streak, earnedAchievements } = get();
+    const newlyEarned = checkAchievements(
+      totalExpenseCount,
+      streak.currentStreak,
+      streak.longestStreak,
+      budgetMonthsUnder,
+      categoriesUsedThisMonth,
+      completedGoals,
+      earnedAchievements,
+    );
+
+    if (newlyEarned.length === 0) return;
+
+    const now = Date.now();
+    const updated = { ...earnedAchievements };
+    for (const id of newlyEarned) {
+      updated[id] = now;
+    }
+
+    set({
+      earnedAchievements: updated,
+      pendingAchievement: newlyEarned[0],
+    });
+
+    AsyncStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(updated));
+  },
+
+  dismissAchievement: () => {
+    set({ pendingAchievement: null });
   },
 }));
