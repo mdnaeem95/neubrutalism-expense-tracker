@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import { eq } from 'drizzle-orm';
 import { db, generateId } from '@/db';
-import { budgets, expenses, categories } from '@/db/schema';
+import { budgets } from '@/db/schema';
 import type { Budget, BudgetPeriod, BudgetWithProgress } from '@/types';
+import { useExpenseStore } from '@/stores/useExpenseStore';
+import { useCategoryStore } from '@/stores/useCategoryStore';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 
 interface BudgetState {
@@ -81,8 +83,8 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
 
   getBudgetsWithProgress: () => {
     const allBudgets = get().budgets;
-    const allExpenses = db.select().from(expenses).all();
-    const allCategories = db.select().from(categories).all();
+    const allExpenses = useExpenseStore.getState().expenses;
+    const allCategories = useCategoryStore.getState().categories;
 
     return allBudgets
       .filter((b) => b.categoryId !== null)
@@ -117,7 +119,7 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
     if (!overallBudget) return null;
 
     const { start, end } = getPeriodRange(overallBudget.period as BudgetPeriod);
-    const allExpenses = db.select().from(expenses).all();
+    const allExpenses = useExpenseStore.getState().expenses;
 
     const spent = allExpenses
       .filter((e) => e.date >= start && e.date <= end)

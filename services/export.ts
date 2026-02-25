@@ -7,15 +7,22 @@ export async function exportToCSV(
   expenses: ExpenseWithCategory[],
   currencySymbol: string
 ): Promise<void> {
+  const csvField = (value: string): string => {
+    if (value.includes('"') || value.includes(',') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    return value;
+  };
+
   const header = 'Date,Category,Description,Amount,Payment Method,Notes\n';
   const rows = expenses
     .map((e) => {
       const date = format(new Date(e.date), 'yyyy-MM-dd');
-      const category = e.category.name.replace(/,/g, ';');
-      const description = (e.description || '').replace(/,/g, ';');
-      const amount = `${currencySymbol}${e.amount.toFixed(2)}`;
-      const paymentMethod = e.paymentMethod;
-      const notes = (e.notes || '').replace(/,/g, ';').replace(/\n/g, ' ');
+      const category = csvField(e.category.name);
+      const description = csvField(e.description || '');
+      const amount = csvField(`${currencySymbol}${e.amount.toFixed(2)}`);
+      const paymentMethod = csvField(e.paymentMethod);
+      const notes = csvField((e.notes || '').replace(/\n/g, ' '));
       return `${date},${category},${description},${amount},${paymentMethod},${notes}`;
     })
     .join('\n');

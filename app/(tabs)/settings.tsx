@@ -61,7 +61,7 @@ export default function SettingsScreen() {
   const handleClearData = () => {
     showConfirm({
       title: 'Clear All Data',
-      message: 'This will permanently delete all your expenses, categories, budgets, debts, tags, and templates. This action cannot be undone.',
+      message: 'This will permanently delete all your expenses, income, savings goals, categories, budgets, debts, tags, and templates. This action cannot be undone.',
       confirmLabel: 'Clear All',
       onConfirm: () => {
         clearAllExpenses();
@@ -70,6 +70,8 @@ export default function SettingsScreen() {
         useDebtStore.getState().clearAllDebts();
         useTagStore.getState().clearAllTags();
         useTemplateStore.getState().clearAllTemplates();
+        useIncomeStore.getState().clearAllIncome();
+        useSavingsGoalStore.getState().clearAllGoals();
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         showSuccess('Data Cleared', 'All data has been removed.');
       },
@@ -354,7 +356,7 @@ export default function SettingsScreen() {
       <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 450 }}>
         <Text style={styles.sectionTitle}>About</Text>
         <NeuCard padded={false}>
-          <SettingsRow icon="information-outline" label="Version" value="1.3.0" onPress={() => {}} showArrow={false} colors={colors} styles={styles} />
+          <SettingsRow icon="information-outline" label="Version" value={require('expo-constants').default.expoConfig?.version ?? '—'} onPress={() => {}} showArrow={false} colors={colors} styles={styles} />
           <View style={styles.divider} />
           <SettingsRow icon="file-document-outline" label="Privacy Policy" onPress={() => {
             WebBrowser.openBrowserAsync('https://mdnaeem95.github.io/neubrutalism-expense-tracker/privacy.html');
@@ -395,7 +397,6 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   premiumDesc: { ...typography.caption },
   settingsRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md },
   settingsIcon: { width: 36, height: 36, borderRadius: borderRadius.sm, alignItems: 'center', justifyContent: 'center' },
-  settingsEmoji: { fontSize: 18 },
   settingsLabel: { ...typography.body, fontWeight: '600', flex: 1 },
   settingsRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   settingsValue: { ...typography.bodySmall, color: colors.textSecondary },

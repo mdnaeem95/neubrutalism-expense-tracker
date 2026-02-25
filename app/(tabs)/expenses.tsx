@@ -39,7 +39,7 @@ const DATE_FILTERS: { label: string; value: DateFilter }[] = [
 export default function ExpensesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { getFilteredExpenses, filters, setFilter, deleteExpense } = useExpenseStore();
+  const { getFilteredExpenses, filters, setFilter, deleteExpense, expenses } = useExpenseStore();
   const { categories } = useCategoryStore();
   const { formatAmount } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
@@ -60,7 +60,7 @@ export default function ExpensesScreen() {
       const eTags = getTagsForExpense(e.id);
       return eTags.some((t) => t.id === selectedTagFilter);
     });
-  }, [filters, useExpenseStore.getState().expenses, selectedTagFilter]);
+  }, [filters, expenses, selectedTagFilter]);
 
   const groupedExpenses = useMemo(() => {
     const groups: { title: string; data: ExpenseWithCategory[] }[] = [];
@@ -294,8 +294,6 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
     borderWidth: 2.5, borderColor: colors.border + '20', borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md, paddingVertical: spacing.md, gap: spacing.md,
   },
-  catIcon: { width: 40, height: 40, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center' },
-  catEmoji: { fontSize: 20 },
   expenseDetails: { flex: 1 },
   expenseDesc: { ...typography.body, fontWeight: '600' },
   expenseMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
@@ -318,5 +316,4 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
     height: 60, backgroundColor: colors.surface, borderWidth: borders.medium, borderColor: borders.color,
     borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center', marginHorizontal: spacing.xl, marginBottom: spacing.sm,
   },
-  adText: { ...typography.caption, color: colors.textLight },
 });

@@ -131,7 +131,7 @@ export default function RootLayout() {
         const settings = useSettingsStore.getState();
         if (settings.notificationsEnabled || settings.budgetAlerts || settings.dailyReminderEnabled || settings.dailySummaryEnabled) {
           const streak = useGamificationStore.getState().streak?.currentStreak ?? 0;
-          await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts, settings.dailyReminderEnabled, streak, settings.dailySummaryEnabled);
+          await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts, settings.dailyReminderEnabled, streak, settings.dailySummaryEnabled, settings.currencySymbol);
         }
         setupQuickActions();
       } catch (error) {

@@ -95,7 +95,7 @@ export async function scheduleBudgetAlerts() {
 
 // --- Recurring Expense Reminders ---
 
-export async function scheduleRecurringReminders() {
+export async function scheduleRecurringReminders(currencySymbol: string = '$') {
   // Cancel existing recurring reminders first
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   for (const notif of scheduled) {
@@ -123,7 +123,7 @@ export async function scheduleRecurringReminders() {
       await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Upcoming Recurring Expense',
-          body: `${template.description || 'Recurring expense'} of $${template.amount.toFixed(2)} is due tomorrow.`,
+          body: `${template.description || 'Recurring expense'} of ${currencySymbol}${template.amount.toFixed(2)} is due tomorrow.`,
           data: { type: 'recurring_reminder', expenseId: template.id },
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: reminderDate },
@@ -175,7 +175,7 @@ export async function cancelDailyReminder() {
 
 // --- Daily Summary ---
 
-export async function scheduleDailySummary() {
+export async function scheduleDailySummary(currencySymbol: string = '$') {
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   for (const notif of scheduled) {
     if (notif.content.data?.type === 'daily_summary') {
@@ -211,7 +211,7 @@ export async function scheduleDailySummary() {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Daily Summary',
-      body: `Today you spent $${todayTotal.toFixed(2)} across ${txCount} transaction${txCount !== 1 ? 's' : ''}.${budgetMsg}`,
+      body: `Today you spent ${currencySymbol}${todayTotal.toFixed(2)} across ${txCount} transaction${txCount !== 1 ? 's' : ''}.${budgetMsg}`,
       data: { type: 'daily_summary' },
     },
     trigger: {
@@ -237,12 +237,13 @@ export async function refreshNotifications(
   dailyReminderEnabled: boolean = false,
   streak: number = 0,
   dailySummaryEnabled: boolean = false,
+  currencySymbol: string = '$',
 ) {
   const hasPermission = await requestNotificationPermissions();
   if (!hasPermission) return;
 
   if (notificationsEnabled) {
-    await scheduleRecurringReminders();
+    await scheduleRecurringReminders(currencySymbol);
   }
 
   if (budgetAlerts) {
@@ -256,7 +257,7 @@ export async function refreshNotifications(
   }
 
   if (dailySummaryEnabled) {
-    await scheduleDailySummary();
+    await scheduleDailySummary(currencySymbol);
   } else {
     await cancelDailySummary();
   }

@@ -50,7 +50,7 @@ export default function AchievementsScreen() {
   const styles = useMemo(() => createStyles(colors, typography), [colors, typography]);
 
   const earnedAchievements: Record<string, number> =
-    (useGamificationStore((s) => (s as any).earnedAchievements) as Record<string, number> | undefined) ?? {};
+    useGamificationStore((s) => s.earnedAchievements) ?? {};
 
   const achievementsWithStatus = useMemo<Achievement[]>(
     () =>

@@ -32,7 +32,7 @@ export default function DashboardScreen() {
   const router = useRouter();
   const { expenses, getMonthlyTotal } = useExpenseStore();
   const { getOverallBudgetProgress, getBudgetsWithProgress } = useBudgetStore();
-  const { formatAmount, gamificationEnabled } = useSettingsStore();
+  const { formatAmount, gamificationEnabled, currencySymbol } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
   const { categories } = useCategoryStore();
   const { pendingLevelUp, dismissLevelUp, earnedAchievements, streak } = useGamificationStore();
@@ -48,6 +48,7 @@ export default function DashboardScreen() {
   const currentMonthTotal = useMemo(() => getMonthlyTotal(), [expenses]);
   const lastMonthTotal = useMemo(() => getMonthlyTotal(subMonths(new Date(), 1)), [expenses]);
   const currentMonthIncome = useMemo(() => getMonthlyIncomeTotal(), [incomes]);
+  const lastMonthIncome = useMemo(() => getMonthlyIncomeTotal(subMonths(new Date(), 1)), [incomes]);
   const monthlyIncomeCount = useMemo(() => getMonthlyCount(), [incomes]);
   const netBalance = useMemo(() => currentMonthIncome - currentMonthTotal, [currentMonthIncome, currentMonthTotal]);
   const budgetProgress = useMemo(() => getOverallBudgetProgress(), [expenses]);
@@ -58,10 +59,10 @@ export default function DashboardScreen() {
   const recentExpenses = useMemo(() => expenses.slice(0, 5), [expenses]);
   const activeGoals = useMemo(() => goals.filter((g) => g.currentAmount < g.targetAmount).slice(0, 2), [goals]);
 
-  const budgetsWithProgress = useMemo(() => getBudgetsWithProgress(), [expenses]);
+  const budgetsWithProgress = useMemo(() => getBudgetsWithProgress(), [expenses, budgets]);
   const insights = useMemo(() => generateInsights(
-    expenses, budgetsWithProgress, currentMonthIncome, 0, streak?.currentStreak ?? 0, expenses.length,
-  ), [expenses, budgetsWithProgress, currentMonthIncome, streak]);
+    expenses, budgetsWithProgress, currentMonthIncome, lastMonthIncome, streak?.currentStreak ?? 0, expenses.length, currencySymbol,
+  ), [expenses, budgetsWithProgress, currentMonthIncome, lastMonthIncome, streak, currencySymbol]);
 
   const recurringExpenses = useMemo(() => expenses.filter((e) => e.isRecurring === 1), [expenses]);
   const monthlyRecurringCost = useMemo(() => {
@@ -218,8 +219,8 @@ export default function DashboardScreen() {
         ) : (
           <NeuCard color={colors.cardTintTeal} onPress={() => router.push('/goals')} style={styles.goalCard}>
             <View style={styles.goalCardRow}>
-              <View style={[styles.goalIconCircle, { backgroundColor: '#4ECDC425' }]}>
-                <MaterialCommunityIcons name="piggy-bank-outline" size={20} color="#4ECDC4" />
+              <View style={[styles.goalIconCircle, { backgroundColor: colors.accent + '25' }]}>
+                <MaterialCommunityIcons name="piggy-bank-outline" size={20} color={colors.accent} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.goalTitle}>Set a savings goal</Text>
@@ -382,7 +383,6 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   expenseAmount: { ...typography.body, fontWeight: '800', color: colors.secondary },
   divider: { height: 1, backgroundColor: colors.border + '20', marginHorizontal: spacing.lg },
   adBanner: { height: 60, backgroundColor: colors.surface, borderWidth: borders.medium, borderColor: borders.color, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center', marginTop: spacing.md },
-  adText: { ...typography.caption, color: colors.textLight },
   goalCard: { marginBottom: spacing.sm },
   goalCardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   goalIconCircle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },

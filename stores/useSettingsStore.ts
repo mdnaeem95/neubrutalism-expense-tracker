@@ -39,8 +39,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         if ('mascotEnabled' in parsed && !('gamificationEnabled' in parsed)) {
           (parsed as Partial<Settings>).gamificationEnabled = parsed.mascotEnabled;
         }
-        delete (parsed as any).mascotEnabled;
-        set({ ...DEFAULT_SETTINGS, ...parsed, isLoaded: true });
+        const { mascotEnabled: _, ...clean } = parsed;
+        set({ ...DEFAULT_SETTINGS, ...clean, isLoaded: true });
       } else {
         set({ isLoaded: true });
       }
@@ -74,6 +74,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   formatAmount: (amount: number) => {
     const { currencySymbol } = get();
+    if (amount < 0) return `-${currencySymbol}${Math.abs(amount).toFixed(2)}`;
     return `${currencySymbol}${amount.toFixed(2)}`;
   },
 }));

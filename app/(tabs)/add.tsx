@@ -24,7 +24,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -67,6 +67,15 @@ export default function AddExpenseScreen() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const { showDialog } = useDialog();
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const incomeSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      if (incomeSuccessTimerRef.current) clearTimeout(incomeSuccessTimerRef.current);
+    };
+  }, []);
 
   const monthlyIncomeCount = getMonthlyCount();
 
@@ -166,7 +175,7 @@ export default function AddExpenseScreen() {
       }
     }
 
-    setTimeout(() => {
+    successTimerRef.current = setTimeout(() => {
       setShowSuccess(false);
       useGamificationStore.getState().dismissXPGain();
       reset();
@@ -208,7 +217,7 @@ export default function AddExpenseScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setShowSuccess(true);
 
-    setTimeout(() => {
+    incomeSuccessTimerRef.current = setTimeout(() => {
       setShowSuccess(false);
       reset();
       setSelectedSource('salary');

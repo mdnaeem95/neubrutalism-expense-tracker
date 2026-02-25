@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { checkSubscriptionStatus } from '@/services/subscriptions';
 
+const isDev = __DEV__;
+
 interface SubscriptionState {
   isPremium: boolean;
   isLoading: boolean;
@@ -9,10 +11,14 @@ interface SubscriptionState {
 }
 
 export const useSubscriptionStore = create<SubscriptionState>((set) => ({
-  isPremium: false,
-  isLoading: true,
+  isPremium: isDev,
+  isLoading: !isDev,
 
   loadSubscriptionStatus: async () => {
+    if (isDev) {
+      set({ isPremium: true, isLoading: false });
+      return;
+    }
     try {
       const isPremium = await checkSubscriptionStatus();
       set({ isPremium, isLoading: false });

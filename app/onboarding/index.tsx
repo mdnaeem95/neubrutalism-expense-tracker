@@ -157,7 +157,6 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) => Style
   flatList: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing['3xl'] },
   iconCard: { width: 140, height: 140, alignItems: 'center', justifyContent: 'center', marginBottom: spacing['3xl'] },
-  /* icon style removed - now uses MaterialCommunityIcons directly */
   title: { ...typography.h1, textAlign: 'center', marginBottom: spacing.md },
   description: { ...typography.body, textAlign: 'center', color: colors.textSecondary, lineHeight: 24 },
   footer: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl },

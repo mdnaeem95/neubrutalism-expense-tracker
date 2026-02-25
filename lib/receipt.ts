@@ -1,19 +1,5 @@
-import { Paths, File } from 'expo-file-system/next';
+import { Paths, File } from 'expo-file-system';
 import * as Crypto from 'expo-crypto';
-
-const RECEIPTS_DIR = `${Paths.document}/receipts`;
-
-async function ensureReceiptsDir() {
-  try {
-    const dir = new File(RECEIPTS_DIR);
-    if (!dir.exists) {
-      // Create directory by writing and removing a temp file — expo-file-system/next
-      // doesn't have mkdir, so we use the directory path directly
-    }
-  } catch {
-    // Directory handling varies; receipts will be saved directly
-  }
-}
 
 export async function saveReceipt(tempUri: string): Promise<string> {
   const ext = tempUri.split('.').pop() || 'jpg';

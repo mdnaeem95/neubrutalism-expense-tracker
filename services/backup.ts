@@ -16,7 +16,11 @@ import {
 } from '@/db/schema';
 import type { BackupData } from '@/types';
 
-const BACKUP_VERSION = '1.3.0';
+const BACKUP_VERSION = '1.4.0';
+
+function getMajorVersion(v: string): number {
+  return parseInt(v.split('.')[0], 10);
+}
 
 // ─── Export ────────────────────────────────────────────────────────────────────
 
@@ -31,9 +35,7 @@ export function exportBackup(): BackupData {
   const allExpenseTags = db.select().from(expenseTags).all();
   const allTemplates = db.select().from(templates).all();
 
-  // AsyncStorage reads are async — we snapshot them synchronously here by
-  // reading from the in-memory Zustand stores via AsyncStorage at call-time.
-  // The actual async reads happen in shareBackup / importBackup which are async.
+  // Settings and gamification are populated asynchronously in buildFullBackup / shareBackup.
   return {
     version: BACKUP_VERSION,
     timestamp: Date.now(),
@@ -74,6 +76,14 @@ export async function importBackup(data: BackupData): Promise<void> {
   try {
     if (!data.version) {
       throw new Error('Invalid backup: missing version field.');
+    }
+
+    const backupMajor = getMajorVersion(data.version);
+    const currentMajor = getMajorVersion(BACKUP_VERSION);
+    if (backupMajor > currentMajor) {
+      throw new Error(
+        `Backup version ${data.version} is newer than this app (${BACKUP_VERSION}). Please update the app first.`
+      );
     }
 
     // Delete in dependency order (junction table first, then dependents, then

@@ -27,7 +27,7 @@ export default function AnalyticsScreen() {
   const { categories } = useCategoryStore();
   const { formatAmount } = useSettingsStore();
   const { isPremium } = useSubscriptionStore();
-  const { getBudgetsWithProgress } = useBudgetStore();
+  const { getBudgetsWithProgress, budgets } = useBudgetStore();
   const { colors, borders, typography } = useTheme();
 
   const styles = useMemo(() => createStyles(colors, borders, typography), [colors, borders, typography]);
@@ -105,7 +105,7 @@ export default function AnalyticsScreen() {
     return { projectedTotal, dailyAvg, remainingDays };
   }, [period, totalSpent]);
 
-  const budgetProgress = useMemo(() => getBudgetsWithProgress(), [expenses]);
+  const budgetProgress = useMemo(() => getBudgetsWithProgress(), [expenses, budgets]);
 
   const monthlyComparison = useMemo(() => {
     const now = new Date();
@@ -645,7 +645,7 @@ export default function AnalyticsScreen() {
             variant="accent"
             size="md"
             fullWidth
-            icon="file-chart-outline"
+            icon={<MaterialCommunityIcons name="file-chart-outline" size={18} color={colors.onPrimary} />}
             style={{ marginBottom: spacing.lg }}
           />
         </MotiView>
@@ -703,7 +703,6 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   pieBar: { height: '100%' },
   categoryRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm, gap: spacing.sm },
   catDot: { width: 10, height: 10, borderRadius: 5 },
-  catEmoji: { fontSize: 20 },
   catInfo: { flex: 1 },
   catName: { ...typography.body, fontWeight: '600' },
   catCount: { ...typography.caption },
@@ -741,7 +740,6 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   pmBarTrack: { height: 16, backgroundColor: colors.background, borderWidth: borders.width, borderColor: colors.border, borderRadius: borderRadius.sm, overflow: 'hidden', marginBottom: spacing.md },
   pmBarFill: { height: '100%', borderRadius: borderRadius.sm - borders.width },
   premiumGate: { alignItems: 'center', marginBottom: spacing.lg },
-  premiumIcon: { fontSize: 40, marginBottom: spacing.sm },
   premiumTitle: { ...typography.h3, marginBottom: spacing.xs },
   premiumDesc: { ...typography.bodySmall, textAlign: 'center', marginBottom: spacing.lg },
 });

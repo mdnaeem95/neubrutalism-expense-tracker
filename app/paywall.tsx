@@ -53,7 +53,7 @@ export default function PaywallScreen() {
           title: 'No Purchases Found',
           message: 'No previous purchases were found to restore.',
           icon: 'information-outline',
-          iconColor: colors.electricBlue,
+          iconColor: colors.blue,
           buttons: [{ text: 'OK', style: 'default' }],
         });
       }
@@ -191,6 +191,6 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   planPrice: { fontSize: 28, fontWeight: '800', color: colors.text, fontFamily: 'SpaceMono_700Bold' },
   planPeriod: { ...typography.caption },
   restoreButton: { alignItems: 'center', paddingVertical: spacing.lg },
-  restoreText: { ...typography.body, fontWeight: '600', color: colors.electricBlue },
+  restoreText: { ...typography.body, fontWeight: '600', color: colors.blue },
   legalText: { ...typography.caption, textAlign: 'center', color: colors.textLight, lineHeight: 18 },
 });

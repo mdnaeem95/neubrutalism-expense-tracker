@@ -8,6 +8,7 @@ export function generateInsights(
   lastMonthIncome: number,
   streak: number,
   totalExpenseCount: number,
+  currencySymbol: string = '$',
 ): Insight[] {
   const insights: Insight[] = [];
   const now = new Date();
@@ -68,7 +69,7 @@ export function generateInsights(
         id: 'budget_projection',
         type: 'budget_projection',
         title: 'Budget Alert',
-        message: `At this pace, you'll exceed your budget by $${overBy.toFixed(0)} this month.`,
+        message: `At this pace, you'll exceed your budget by ${currencySymbol}${overBy.toFixed(0)} this month.`,
         icon: 'alert-circle-outline',
         color: '#EF4444',
         priority: 9,
@@ -86,7 +87,7 @@ export function generateInsights(
         id: 'biggest_today',
         type: 'biggest_expense',
         title: 'Biggest Today',
-        message: `Your largest expense today: $${biggest.amount.toFixed(2)} on ${biggest.category.name}.`,
+        message: `Your largest expense today: ${currencySymbol}${biggest.amount.toFixed(2)} on ${biggest.category.name}.`,
         icon: 'cash',
         color: '#4D96FF',
         priority: 4,
@@ -101,7 +102,7 @@ export function generateInsights(
       id: 'savings_compare',
       type: 'savings_comparison',
       title: 'Spending Down',
-      message: `You've spent $${saved.toFixed(0)} less than this time last month. Keep it up!`,
+      message: `You've spent ${currencySymbol}${saved.toFixed(0)} less than this time last month. Keep it up!`,
       icon: 'piggy-bank-outline',
       color: '#6BCB77',
       priority: 7,
