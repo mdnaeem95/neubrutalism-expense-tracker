@@ -35,7 +35,7 @@ const ADD_EXPENSE_ACTIVITY_TYPE = 'com.ledgr.app.add-expense';
 export const ADD_EXPENSE_SHORTCUT = {
   activityType: ADD_EXPENSE_ACTIVITY_TYPE,
   title: 'Add Expense',
-  suggestedInvocationPhrase: 'Log an expense',
+  suggestedInvocationPhrase: 'New expense',
   isEligibleForSearch: true,
   isEligibleForPrediction: true,
   needsSave: true,

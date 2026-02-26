@@ -19,7 +19,7 @@
         "NSPhotoLibraryUsageDescription": "This app accesses your photos to attach receipt images to expenses.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "13"
+      "buildNumber": "14"
     },
     "android": {
       "adaptiveIcon": {

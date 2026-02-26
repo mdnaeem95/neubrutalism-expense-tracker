@@ -59,10 +59,28 @@ export async function initializeSubscriptions() {
 }
 
 export async function checkSubscriptionStatus(): Promise<boolean> {
-  if (!nativePurchasesAvailable || !isConfigured) return false;
+  if (!nativePurchasesAvailable || !isConfigured) {
+    console.warn('[Subscriptions] checkStatus skipped:', { nativePurchasesAvailable, isConfigured });
+    return false;
+  }
   try {
     const customerInfo = await Purchases.getCustomerInfo();
-    return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+    const hasEntitlement = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+    // Fallback 1: check if user has ANY active entitlement (in case entitlement name differs)
+    const activeEntitlements = Object.keys(customerInfo.entitlements?.active ?? {});
+    const hasAnyEntitlement = activeEntitlements.length > 0;
+    // Fallback 2: check if user has ANY active subscription (in case entitlements aren't configured)
+    const activeSubscriptions: string[] = customerInfo.activeSubscriptions ?? [];
+    const hasActiveSubscription = activeSubscriptions.length > 0;
+    console.log('[Subscriptions] checkStatus:', {
+      hasEntitlement,
+      hasAnyEntitlement,
+      hasActiveSubscription,
+      activeEntitlements,
+      activeSubscriptions,
+      allEntitlements: Object.keys(customerInfo.entitlements?.all ?? {}),
+    });
+    return hasEntitlement || hasAnyEntitlement || hasActiveSubscription;
   } catch (error) {
     console.error('[Subscriptions] checkStatus failed:', error);
     return false;
@@ -104,10 +122,13 @@ export async function purchaseMonthly(): Promise<boolean> {
     const monthly = offerings.current?.monthly;
     if (!monthly) throw new Error('Monthly package not available. Check RevenueCat offering configuration.');
     const { customerInfo } = await Purchases.purchasePackage(monthly);
-    return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+    logPurchaseResult('monthly', customerInfo);
+    // purchasePackage succeeded = user paid. Return true even if entitlement name doesn't match.
+    return true;
   }
   const { customerInfo } = await Purchases.purchasePackage(pkg);
-  return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+  logPurchaseResult('monthly', customerInfo);
+  return true;
 }
 
 export async function purchaseYearly(): Promise<boolean> {
@@ -121,10 +142,22 @@ export async function purchaseYearly(): Promise<boolean> {
     const annual = offerings.current?.annual;
     if (!annual) throw new Error('Yearly package not available. Check RevenueCat offering configuration.');
     const { customerInfo } = await Purchases.purchasePackage(annual);
-    return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+    logPurchaseResult('yearly', customerInfo);
+    return true;
   }
   const { customerInfo } = await Purchases.purchasePackage(pkg);
-  return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+  logPurchaseResult('yearly', customerInfo);
+  return true;
+}
+
+function logPurchaseResult(plan: string, customerInfo: any) {
+  const activeEntitlements = Object.keys(customerInfo.entitlements?.active ?? {});
+  const allEntitlements = Object.keys(customerInfo.entitlements?.all ?? {});
+  console.log(`[Subscriptions] purchase ${plan} result:`, {
+    activeEntitlements,
+    allEntitlements,
+    hasExpectedEntitlement: customerInfo.entitlements?.active?.[ENTITLEMENT_ID] !== undefined,
+  });
 }
 
 export async function getAppUserID(): Promise<string | null> {
@@ -141,5 +174,14 @@ export async function restorePurchases(): Promise<boolean> {
   if (!nativePurchasesAvailable) throw new Error('Purchases not available');
   if (!isConfigured) await initializeSubscriptions();
   const customerInfo = await Purchases.restorePurchases();
-  return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+  const activeEntitlements = Object.keys(customerInfo.entitlements?.active ?? {});
+  const activeSubscriptions: string[] = customerInfo.activeSubscriptions ?? [];
+  console.log('[Subscriptions] restore result:', {
+    activeEntitlements,
+    activeSubscriptions,
+    allEntitlements: Object.keys(customerInfo.entitlements?.all ?? {}),
+    hasExpectedEntitlement: customerInfo.entitlements?.active?.[ENTITLEMENT_ID] !== undefined,
+  });
+  // Return true if user has ANY active entitlement or subscription
+  return activeEntitlements.length > 0 || activeSubscriptions.length > 0;
 }
