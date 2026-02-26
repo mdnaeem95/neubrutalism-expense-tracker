@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,23 +27,55 @@ import { useTheme } from '@/lib/ThemeContext';
 import type { ThemeColors, ThemeBorders, ThemeTypography } from '@/lib/theme';
 import type { ExpenseWithCategory, SpendingByCategory } from '@/types';
 
+const ExpenseRow = React.memo(function ExpenseRow({ expense, formatAmount: fmtAmount, onPress, colors, typography }: {
+  expense: ExpenseWithCategory;
+  formatAmount: (n: number) => string;
+  onPress: (id: string) => void;
+  colors: ThemeColors;
+  typography: ThemeTypography;
+}) {
+  const styles = useMemo(() => createStyles(colors, {} as ThemeBorders, typography), [colors, typography]);
+  return (
+    <Pressable onPress={() => onPress(expense.id)} style={styles.expenseRow}>
+      <CategoryIcon icon={expense.category.icon} color={expense.category.color} />
+      <View style={styles.expenseInfo}>
+        <Text style={styles.expenseDesc} numberOfLines={1}>
+          {expense.description || expense.category.name}
+        </Text>
+        <Text style={styles.expenseDate}>{format(new Date(expense.date), 'MMM d, h:mm a')}</Text>
+      </View>
+      <Text style={styles.expenseAmount}>-{fmtAmount(expense.amount)}</Text>
+    </Pressable>
+  );
+});
+
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { expenses, getMonthlyTotal } = useExpenseStore();
-  const { getOverallBudgetProgress, getBudgetsWithProgress } = useBudgetStore();
-  const { formatAmount, gamificationEnabled, currencySymbol } = useSettingsStore();
-  const { isPremium } = useSubscriptionStore();
-  const { categories } = useCategoryStore();
-  const { pendingLevelUp, dismissLevelUp, earnedAchievements, streak } = useGamificationStore();
-  const { goals } = useSavingsGoalStore();
-  const { debts, getTotalDebt } = useDebtStore();
-  const { budgets } = useBudgetStore();
+  const expenses = useExpenseStore((s) => s.expenses);
+  const getMonthlyTotal = useExpenseStore((s) => s.getMonthlyTotal);
+  const getOverallBudgetProgress = useBudgetStore((s) => s.getOverallBudgetProgress);
+  const getBudgetsWithProgress = useBudgetStore((s) => s.getBudgetsWithProgress);
+  const budgets = useBudgetStore((s) => s.budgets);
+  const formatAmount = useSettingsStore((s) => s.formatAmount);
+  const gamificationEnabled = useSettingsStore((s) => s.gamificationEnabled);
+  const currencySymbol = useSettingsStore((s) => s.currencySymbol);
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
+  const categories = useCategoryStore((s) => s.categories);
+  const pendingLevelUp = useGamificationStore((s) => s.pendingLevelUp);
+  const dismissLevelUp = useGamificationStore((s) => s.dismissLevelUp);
+  const earnedAchievements = useGamificationStore((s) => s.earnedAchievements);
+  const streak = useGamificationStore((s) => s.streak);
+  const goals = useSavingsGoalStore((s) => s.goals);
+  const debts = useDebtStore((s) => s.debts);
+  const getTotalDebt = useDebtStore((s) => s.getTotalDebt);
   const { colors, borders, typography } = useTheme();
 
   const styles = useMemo(() => createStyles(colors, borders, typography), [colors, borders, typography]);
 
-  const { incomes, getMonthlyTotal: getMonthlyIncomeTotal, getMonthlyCount } = useIncomeStore();
+  const incomes = useIncomeStore((s) => s.incomes);
+  const getMonthlyIncomeTotal = useIncomeStore((s) => s.getMonthlyTotal);
+  const getMonthlyCount = useIncomeStore((s) => s.getMonthlyCount);
 
   const currentMonthTotal = useMemo(() => getMonthlyTotal(), [expenses]);
   const lastMonthTotal = useMemo(() => getMonthlyTotal(subMonths(new Date(), 1)), [expenses]);
@@ -83,15 +115,16 @@ export default function DashboardScreen() {
   const earnedCount = useMemo(() => Object.keys(earnedAchievements).length, [earnedAchievements]);
 
   const categoryBreakdown = useMemo((): SpendingByCategory[] => {
-    const map = new Map<string, number>();
+    const spendingMap = new Map<string, number>();
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     expenses
       .filter((e) => e.date >= monthStart)
-      .forEach((e) => { map.set(e.categoryId, (map.get(e.categoryId) || 0) + e.amount); });
-    return Array.from(map.entries())
+      .forEach((e) => { spendingMap.set(e.categoryId, (spendingMap.get(e.categoryId) || 0) + e.amount); });
+    const categoryMap = new Map(categories.map((c) => [c.id, c]));
+    return Array.from(spendingMap.entries())
       .map(([catId, total]) => {
-        const cat = categories.find((c) => c.id === catId);
+        const cat = categoryMap.get(catId);
         return {
           categoryId: catId, categoryName: cat?.name || 'Unknown', categoryIcon: cat?.icon || 'cube-outline',
           categoryColor: cat?.color || '#9CA3AF', total,
@@ -101,20 +134,9 @@ export default function DashboardScreen() {
       .sort((a, b) => b.total - a.total).slice(0, 5);
   }, [expenses, categories, currentMonthTotal]);
 
-  function ExpenseRow({ expense, formatAmount: fmtAmount }: { expense: ExpenseWithCategory; formatAmount: (n: number) => string }) {
-    return (
-      <Pressable onPress={() => router.push(`/expense/${expense.id}`)} style={styles.expenseRow}>
-        <CategoryIcon icon={expense.category.icon} color={expense.category.color} />
-        <View style={styles.expenseInfo}>
-          <Text style={styles.expenseDesc} numberOfLines={1}>
-            {expense.description || expense.category.name}
-          </Text>
-          <Text style={styles.expenseDate}>{format(new Date(expense.date), 'MMM d, h:mm a')}</Text>
-        </View>
-        <Text style={styles.expenseAmount}>-{fmtAmount(expense.amount)}</Text>
-      </Pressable>
-    );
-  }
+  const handleExpensePress = useCallback((id: string) => {
+    router.push(`/expense/${id}`);
+  }, [router]);
 
   return (
     <ScrollView style={[styles.container, { paddingTop: insets.top }]} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -308,7 +330,7 @@ export default function DashboardScreen() {
           <NeuCard padded={false} style={styles.transactionCard}>
             {recentExpenses.map((expense, index) => (
               <React.Fragment key={expense.id}>
-                <ExpenseRow expense={expense} formatAmount={formatAmount} />
+                <ExpenseRow expense={expense} formatAmount={formatAmount} onPress={handleExpensePress} colors={colors} typography={typography} />
                 {index < recentExpenses.length - 1 && <View style={styles.divider} />}
               </React.Fragment>
             ))}

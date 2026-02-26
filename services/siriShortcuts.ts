@@ -19,9 +19,15 @@ try {
     AddToSiriButton = SiriShortcut.AddToSiriButton;
     SiriButtonStyles = SiriShortcut.SiriButtonStyles;
     nativeSiriAvailable = true;
+    console.log('[Siri] Module loaded:', {
+      donate: !!donateShortcutFn,
+      present: !!presentShortcutFn,
+      listener: !!addShortcutListener,
+      button: !!AddToSiriButton,
+    });
   }
-} catch {
-  // Native module not available (Expo Go or Android) — Siri shortcuts will be no-ops
+} catch (error) {
+  console.error('[Siri] Failed to load native module:', error);
 }
 
 const ADD_EXPENSE_ACTIVITY_TYPE = 'com.ledgr.app.add-expense';
@@ -39,15 +45,29 @@ export const ADD_EXPENSE_SHORTCUT = {
 };
 
 export function donateAddExpenseShortcut() {
-  if (!nativeSiriAvailable || !donateShortcutFn) return;
-  donateShortcutFn(ADD_EXPENSE_SHORTCUT);
+  if (!nativeSiriAvailable || !donateShortcutFn) {
+    console.warn('[Siri] donateShortcut skipped:', { nativeSiriAvailable, fn: !!donateShortcutFn });
+    return;
+  }
+  try {
+    donateShortcutFn(ADD_EXPENSE_SHORTCUT);
+  } catch (error) {
+    console.error('[Siri] donateShortcut failed:', error);
+  }
 }
 
 export function presentAddExpenseShortcut(
   callback: (data: { status: string; phrase?: string }) => void,
 ) {
-  if (!nativeSiriAvailable || !presentShortcutFn) return;
-  presentShortcutFn(ADD_EXPENSE_SHORTCUT, callback);
+  if (!nativeSiriAvailable || !presentShortcutFn) {
+    console.warn('[Siri] presentShortcut skipped:', { nativeSiriAvailable, fn: !!presentShortcutFn });
+    return;
+  }
+  try {
+    presentShortcutFn(ADD_EXPENSE_SHORTCUT, callback);
+  } catch (error) {
+    console.error('[Siri] presentShortcut failed:', error);
+  }
 }
 
 export {

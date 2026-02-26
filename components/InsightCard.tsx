@@ -27,7 +27,7 @@ function getInsightTint(insightColor: string, colors: ThemeColors): string {
   }
 }
 
-export default function InsightCard({ insight, index = 0, style }: InsightCardProps) {
+function InsightCard({ insight, index = 0, style }: InsightCardProps) {
   const { colors, typography } = useTheme();
   const styles = useMemo(() => createStyles(colors, typography), [colors, typography]);
 
@@ -57,6 +57,8 @@ export default function InsightCard({ insight, index = 0, style }: InsightCardPr
     </MotiView>
   );
 }
+
+export default React.memo(InsightCard);
 
 const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
   StyleSheet.create({

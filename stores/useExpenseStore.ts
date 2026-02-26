@@ -8,6 +8,7 @@ import {
   startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths,
 } from 'date-fns';
 import { advanceDate } from '@/services/recurring';
+import { useCategoryStore } from '@/stores/useCategoryStore';
 
 interface ExpenseFilters {
   dateFilter: DateFilter;
@@ -158,7 +159,31 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
     };
 
     db.insert(expenses).values(expense).run();
-    get().loadExpenses();
+
+    // Optimistic update: prepend to state with category data
+    const category = useCategoryStore.getState().categories.find((c) => c.id === data.categoryId);
+    if (category) {
+      const expenseWithCategory: ExpenseWithCategory = {
+        ...expense,
+        category: {
+          id: category.id,
+          name: category.name,
+          icon: category.icon,
+          color: category.color,
+          budgetAmount: category.budgetAmount,
+          budgetPeriod: category.budgetPeriod,
+          isDefault: category.isDefault,
+          sortOrder: category.sortOrder,
+          createdAt: category.createdAt,
+        },
+      };
+      set((state) => ({
+        expenses: [expenseWithCategory, ...state.expenses].sort((a, b) => b.date - a.date),
+      }));
+    } else {
+      // Fallback: full reload if category not found
+      get().loadExpenses();
+    }
 
     return expense;
   },
@@ -176,7 +201,35 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
     if (data.receiptUri !== undefined) updateData.receiptUri = data.receiptUri;
 
     db.update(expenses).set(updateData).where(eq(expenses.id, id)).run();
-    get().loadExpenses();
+
+    // Optimistic update: patch in state
+    const allCategories = useCategoryStore.getState().categories;
+    set((state) => ({
+      expenses: state.expenses.map((e) => {
+        if (e.id !== id) return e;
+        const updated = { ...e, updatedAt: Date.now() } as ExpenseWithCategory;
+        if (data.amount !== undefined) updated.amount = data.amount;
+        if (data.description !== undefined) updated.description = data.description;
+        if (data.date !== undefined) updated.date = data.date.getTime();
+        if (data.paymentMethod !== undefined) updated.paymentMethod = data.paymentMethod;
+        if (data.isRecurring !== undefined) updated.isRecurring = data.isRecurring ? 1 : 0;
+        if (data.recurringFrequency !== undefined) updated.recurringFrequency = data.recurringFrequency;
+        if (data.notes !== undefined) updated.notes = data.notes;
+        if (data.receiptUri !== undefined) updated.receiptUri = data.receiptUri;
+        if (data.categoryId !== undefined) {
+          updated.categoryId = data.categoryId;
+          const cat = allCategories.find((c) => c.id === data.categoryId);
+          if (cat) {
+            updated.category = {
+              id: cat.id, name: cat.name, icon: cat.icon, color: cat.color,
+              budgetAmount: cat.budgetAmount, budgetPeriod: cat.budgetPeriod,
+              isDefault: cat.isDefault, sortOrder: cat.sortOrder, createdAt: cat.createdAt,
+            };
+          }
+        }
+        return updated;
+      }).sort((a, b) => b.date - a.date),
+    }));
   },
 
   deleteExpense: (id) => {

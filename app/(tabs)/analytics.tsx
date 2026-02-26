@@ -16,10 +16,19 @@ import { MotiView } from 'moti';
 import React, { useMemo, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-export default function AnalyticsScreen() {
+export default function AnalyticsScreenWrapper() {
+  return (
+    <ErrorBoundary>
+      <AnalyticsScreen />
+    </ErrorBoundary>
+  );
+}
+
+function AnalyticsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { expenses } = useExpenseStore();

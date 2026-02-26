@@ -27,6 +27,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
@@ -39,7 +40,15 @@ const expenseSchema = z.object({
 type FormData = z.infer<typeof expenseSchema>;
 type AddMode = 'expense' | 'income';
 
-export default function AddExpenseScreen() {
+export default function AddExpenseScreenWrapper() {
+  return (
+    <ErrorBoundary>
+      <AddExpenseScreen />
+    </ErrorBoundary>
+  );
+}
+
+function AddExpenseScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { addExpense, incrementAddCount } = useExpenseStore();

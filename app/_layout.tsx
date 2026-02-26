@@ -109,11 +109,11 @@ export default function RootLayout() {
   useEffect(() => {
     async function bootstrap() {
       try {
+        // Critical path: DB + core data needed for first paint
         initializeDatabase();
         await useSettingsStore.getState().loadSettings();
         useCategoryStore.getState().loadCategories();
         useExpenseStore.getState().loadExpenses();
-        // Generate any overdue recurring expenses, then reload
         const generated = processRecurringExpenses();
         if (generated > 0) useExpenseStore.getState().loadExpenses();
         useBudgetStore.getState().loadBudgets();
@@ -124,16 +124,6 @@ export default function RootLayout() {
         useTemplateStore.getState().loadTemplates();
         await useGamificationStore.getState().loadGamification();
         useGamificationStore.getState().checkStreakOnAppOpen();
-        await useSubscriptionStore.getState().loadSubscriptionStatus();
-        await initializeAds();
-        loadInterstitial();
-        await initializeSubscriptions();
-        const settings = useSettingsStore.getState();
-        if (settings.notificationsEnabled || settings.budgetAlerts || settings.dailyReminderEnabled || settings.dailySummaryEnabled) {
-          const streak = useGamificationStore.getState().streak?.currentStreak ?? 0;
-          await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts, settings.dailyReminderEnabled, streak, settings.dailySummaryEnabled, settings.currencySymbol);
-        }
-        setupQuickActions();
       } catch (error) {
         console.error('Bootstrap error:', error);
       } finally {
@@ -143,6 +133,31 @@ export default function RootLayout() {
 
     bootstrap();
   }, []);
+
+  // Deferred initialization: services that aren't needed for first paint
+  useEffect(() => {
+    if (!isReady) return;
+
+    async function initServices() {
+      try {
+        await initializeSubscriptions();
+        await Promise.all([
+          useSubscriptionStore.getState().loadSubscriptionStatus(),
+          initializeAds().then(() => loadInterstitial()),
+        ]);
+        const settings = useSettingsStore.getState();
+        if (settings.notificationsEnabled || settings.budgetAlerts || settings.dailyReminderEnabled || settings.dailySummaryEnabled) {
+          const streak = useGamificationStore.getState().streak?.currentStreak ?? 0;
+          await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts, settings.dailyReminderEnabled, streak, settings.dailySummaryEnabled, settings.currencySymbol);
+        }
+        setupQuickActions();
+      } catch (error) {
+        console.error('Service init error:', error);
+      }
+    }
+
+    initServices();
+  }, [isReady]);
 
   // Handle Siri shortcut invocation (iOS only)
   useEffect(() => {

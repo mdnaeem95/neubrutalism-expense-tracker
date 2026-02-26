@@ -44,24 +44,34 @@ export async function initializeAds() {
 
 let interstitialAd: any = null;
 let interstitialLoaded = false;
+let adListenerUnsubscribers: (() => void)[] = [];
+
+function cleanupAdListeners() {
+  adListenerUnsubscribers.forEach((unsub) => unsub());
+  adListenerUnsubscribers = [];
+}
 
 function createAndLoadInterstitial() {
   if (!nativeAdsAvailable) return;
+
+  cleanupAdListeners();
+
   interstitialAd = InterstitialAd.createForAdRequest(INTERSTITIAL_ID);
 
-  interstitialAd.addAdEventListener(AdEventType.LOADED, () => {
+  const unsubLoaded = interstitialAd.addAdEventListener(AdEventType.LOADED, () => {
     interstitialLoaded = true;
   });
 
-  interstitialAd.addAdEventListener(AdEventType.CLOSED, () => {
+  const unsubClosed = interstitialAd.addAdEventListener(AdEventType.CLOSED, () => {
     interstitialLoaded = false;
-    // Preload the next one
     createAndLoadInterstitial();
   });
 
-  interstitialAd.addAdEventListener(AdEventType.ERROR, () => {
+  const unsubError = interstitialAd.addAdEventListener(AdEventType.ERROR, () => {
     interstitialLoaded = false;
   });
+
+  adListenerUnsubscribers = [unsubLoaded, unsubClosed, unsubError];
 
   interstitialAd.load();
 }

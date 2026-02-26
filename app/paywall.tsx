@@ -29,12 +29,16 @@ export default function PaywallScreen() {
     try {
       const success = selectedPlan === 'yearly' ? await purchaseYearly() : await purchaseMonthly();
       if (success) {
-        await setPremium(true);
+        setPremium(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        showSuccess('Welcome to Pro!', 'You now have access to all premium features.', () => router.back());
+        // Navigate back immediately — don't show a dialog on top of a modal
+        // (stacking React Native <Modal> inside a Stack modal causes iOS to freeze)
+        router.back();
       }
-    } catch {
-      showError('Error', 'Purchase failed. Please try again.');
+    } catch (error: any) {
+      console.error('[Paywall] Purchase failed:', error);
+      if (error?.userCancelled) return;
+      showError('Purchase Failed', error?.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -45,9 +49,9 @@ export default function PaywallScreen() {
     try {
       const success = await restorePurchases();
       if (success) {
-        await setPremium(true);
+        setPremium(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        showSuccess('Restored!', 'Your premium access has been restored.', () => router.back());
+        router.back();
       } else {
         showDialog({
           title: 'No Purchases Found',
@@ -57,8 +61,10 @@ export default function PaywallScreen() {
           buttons: [{ text: 'OK', style: 'default' }],
         });
       }
-    } catch {
-      showError('Error', 'Restore failed. Please try again.');
+    } catch (error: any) {
+      console.error('[Paywall] Restore failed:', error);
+      if (error?.userCancelled) return;
+      showError('Restore Failed', error?.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }

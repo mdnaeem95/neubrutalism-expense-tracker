@@ -267,14 +267,12 @@ export default function SettingsScreen() {
               {AddToSiriButton ? (
                 <AddToSiriButton
                   shortcut={ADD_EXPENSE_SHORTCUT}
-                  buttonStyle={SiriButtonStyles?.automaticOutline}
+                  buttonStyle={SiriButtonStyles?.blackOutline ?? 3}
                   onPress={() => {
-                    presentAddExpenseShortcut(({ status }) => {
-                      if (status === 'added') {
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        showSuccess('Siri Shortcut Added', 'Say "Log an expense" to Siri or assign to Back Tap.');
-                      }
-                    });
+                    // Native AddToSiriButton handles presentation itself —
+                    // onPress fires after the sheet dismisses
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    showSuccess('Siri Shortcut Added', 'Say "Log an expense" to Siri or assign to Back Tap.');
                   }}
                   style={{ alignSelf: 'center', marginTop: spacing.md }}
                 />
@@ -282,7 +280,7 @@ export default function SettingsScreen() {
                 <Pressable
                   onPress={() => {
                     presentAddExpenseShortcut(({ status }) => {
-                      if (status === 'added') {
+                      if (status === 'added' || status === 'updated') {
                         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                         showSuccess('Siri Shortcut Added', 'Say "Log an expense" to Siri or assign to Back Tap.');
                       }

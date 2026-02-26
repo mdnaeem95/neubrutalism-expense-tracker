@@ -18,8 +18,10 @@ import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
-import Animated, { SlideInRight } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const ListSeparator = React.memo(() => <View style={{ height: 8 }} />);
 
 function getDateGroup(timestamp: number): string {
   const date = new Date(timestamp);
@@ -39,10 +41,14 @@ const DATE_FILTERS: { label: string; value: DateFilter }[] = [
 export default function ExpensesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { getFilteredExpenses, filters, setFilter, deleteExpense, expenses } = useExpenseStore();
-  const { categories } = useCategoryStore();
-  const { formatAmount } = useSettingsStore();
-  const { isPremium } = useSubscriptionStore();
+  const getFilteredExpenses = useExpenseStore((s) => s.getFilteredExpenses);
+  const filters = useExpenseStore((s) => s.filters);
+  const setFilter = useExpenseStore((s) => s.setFilter);
+  const deleteExpense = useExpenseStore((s) => s.deleteExpense);
+  const expenses = useExpenseStore((s) => s.expenses);
+  const categories = useCategoryStore((s) => s.categories);
+  const formatAmount = useSettingsStore((s) => s.formatAmount);
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
   const { showConfirm } = useDialog();
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null);
   const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
@@ -133,8 +139,8 @@ export default function ExpensesScreen() {
     </Pressable>
   ), [handleDelete, styles]);
 
-  const renderExpenseItem = useCallback(({ item, index }: { item: ExpenseWithCategory; index: number }) => (
-    <Animated.View entering={SlideInRight.delay(index * 50).duration(300)}>
+  const renderExpenseItem = useCallback(({ item }: { item: ExpenseWithCategory }) => (
+    <Animated.View entering={FadeIn.duration(200)}>
       <Swipeable
         ref={(ref) => {
           if (ref) swipeableRefs.current.set(item.id, ref);
@@ -252,13 +258,17 @@ export default function ExpensesScreen() {
         <FlatList
           data={flatData}
           keyExtractor={(item: any) => item.type === 'header' ? `header-${item.title}` : item.id}
-          renderItem={({ item, index }: { item: any; index: number }) => {
+          renderItem={({ item }: { item: any }) => {
             if (item.type === 'header') return renderSectionHeader(item.title);
-            return renderExpenseItem({ item, index });
+            return renderExpenseItem({ item });
           }}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ItemSeparatorComponent={ListSeparator}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          removeClippedSubviews={true}
         />
       ) : (
         <NeuEmptyState

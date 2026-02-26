@@ -86,11 +86,13 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
     const allExpenses = useExpenseStore.getState().expenses;
     const allCategories = useCategoryStore.getState().categories;
 
+    const categoryMap = new Map(allCategories.map((c) => [c.id, c]));
+
     return allBudgets
       .filter((b) => b.categoryId !== null)
       .map((budget) => {
         const { start, end } = getPeriodRange(budget.period as BudgetPeriod);
-        const cat = allCategories.find((c) => c.id === budget.categoryId);
+        const cat = categoryMap.get(budget.categoryId!);
 
         const spent = allExpenses
           .filter(

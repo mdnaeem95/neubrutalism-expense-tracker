@@ -11,7 +11,7 @@ interface CategoryIconProps {
   style?: ViewStyle;
 }
 
-export default function CategoryIcon({
+function CategoryIcon({
   icon,
   color,
   size = 20,
@@ -35,6 +35,8 @@ export default function CategoryIcon({
     </View>
   );
 }
+
+export default React.memo(CategoryIcon);
 
 const styles = StyleSheet.create({
   container: {

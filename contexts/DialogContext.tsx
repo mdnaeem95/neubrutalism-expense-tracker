@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/ThemeContext';
 import NeuDialog, { type DialogButton, type DialogButtonStyle } from '@/components/ui/NeuDialog';
@@ -30,11 +30,20 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
   const [visible, setVisible] = useState(false);
   const [config, setConfig] = useState<DialogConfig | null>(null);
   const queueRef = useRef<DialogConfig[]>([]);
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    };
+  }, []);
 
   const dismiss = useCallback(() => {
     setVisible(false);
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     // Show next queued dialog after a short delay for animation
-    setTimeout(() => {
+    dismissTimerRef.current = setTimeout(() => {
+      dismissTimerRef.current = null;
       if (queueRef.current.length > 0) {
         const next = queueRef.current.shift()!;
         setConfig(next);

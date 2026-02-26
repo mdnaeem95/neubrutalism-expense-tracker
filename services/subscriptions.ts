@@ -46,40 +46,63 @@ export const PREMIUM_FEATURES = [
   { title: 'No Ads', description: 'Ad-free experience', icon: 'cancel' },
 ];
 
+let isConfigured = false;
+
 export async function initializeSubscriptions() {
-  if (!nativePurchasesAvailable) return;
-  Purchases.configure({ apiKey: REVENUECAT_API_KEY });
+  if (!nativePurchasesAvailable || isConfigured) return;
+  try {
+    Purchases.configure({ apiKey: REVENUECAT_API_KEY });
+    isConfigured = true;
+  } catch (error) {
+    console.error('[Subscriptions] configure failed:', error);
+  }
 }
 
 export async function checkSubscriptionStatus(): Promise<boolean> {
-  if (!nativePurchasesAvailable) return false;
+  if (!nativePurchasesAvailable || !isConfigured) return false;
   try {
     const customerInfo = await Purchases.getCustomerInfo();
     return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
-  } catch {
+  } catch (error) {
+    console.error('[Subscriptions] checkStatus failed:', error);
     return false;
   }
 }
 
 async function getPackage(identifier: string): Promise<any | null> {
+  if (!isConfigured) {
+    console.warn('[Subscriptions] getPackage called before configure');
+    return null;
+  }
   try {
     const offerings = await Purchases.getOfferings();
     const current = offerings.current;
-    if (!current) return null;
-    return current.availablePackages.find((p: any) => p.identifier === identifier) ?? null;
-  } catch {
+    if (!current) {
+      console.warn('[Subscriptions] No current offering available');
+      return null;
+    }
+    const pkg = current.availablePackages.find((p: any) => p.identifier === identifier) ?? null;
+    if (!pkg) {
+      console.warn(`[Subscriptions] Package "${identifier}" not found. Available:`,
+        current.availablePackages.map((p: any) => p.identifier));
+    }
+    return pkg;
+  } catch (error) {
+    console.error('[Subscriptions] getPackage failed:', error);
     return null;
   }
 }
 
 export async function purchaseMonthly(): Promise<boolean> {
   if (!nativePurchasesAvailable) throw new Error('Purchases not available');
+  if (!isConfigured) await initializeSubscriptions();
+
   const pkg = await getPackage('$rc_monthly');
   if (!pkg) {
-    // Fallback: try to purchase any monthly-like package
+    // Fallback: try the monthly convenience property
     const offerings = await Purchases.getOfferings();
     const monthly = offerings.current?.monthly;
-    if (!monthly) throw new Error('Monthly package not available');
+    if (!monthly) throw new Error('Monthly package not available. Check RevenueCat offering configuration.');
     const { customerInfo } = await Purchases.purchasePackage(monthly);
     return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
   }
@@ -89,11 +112,14 @@ export async function purchaseMonthly(): Promise<boolean> {
 
 export async function purchaseYearly(): Promise<boolean> {
   if (!nativePurchasesAvailable) throw new Error('Purchases not available');
+  if (!isConfigured) await initializeSubscriptions();
+
   const pkg = await getPackage('$rc_annual');
   if (!pkg) {
+    // Fallback: try the annual convenience property
     const offerings = await Purchases.getOfferings();
     const annual = offerings.current?.annual;
-    if (!annual) throw new Error('Yearly package not available');
+    if (!annual) throw new Error('Yearly package not available. Check RevenueCat offering configuration.');
     const { customerInfo } = await Purchases.purchasePackage(annual);
     return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
   }
@@ -101,8 +127,19 @@ export async function purchaseYearly(): Promise<boolean> {
   return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
 }
 
+export async function getAppUserID(): Promise<string | null> {
+  if (!nativePurchasesAvailable || !isConfigured) return null;
+  try {
+    return await Purchases.getAppUserID();
+  } catch (error) {
+    console.error('[Subscriptions] getAppUserID failed:', error);
+    return null;
+  }
+}
+
 export async function restorePurchases(): Promise<boolean> {
   if (!nativePurchasesAvailable) throw new Error('Purchases not available');
+  if (!isConfigured) await initializeSubscriptions();
   const customerInfo = await Purchases.restorePurchases();
   return customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
 }

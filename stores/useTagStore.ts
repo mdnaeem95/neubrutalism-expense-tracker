@@ -8,6 +8,7 @@ const FREE_TAG_LIMIT = 3;
 
 interface TagState {
   tags: Tag[];
+  expenseTagMap: Map<string, Tag[]>;
   isLoading: boolean;
   loadTags: () => void;
   addTag: (data: { name: string; color: string }) => Tag;
@@ -20,8 +21,24 @@ interface TagState {
   clearAllTags: () => void;
 }
 
+function buildExpenseTagMap(allTags: Tag[]): Map<string, Tag[]> {
+  const associations = db.select().from(expenseTags).all() as { expenseId: string; tagId: string }[];
+  const tagById = new Map(allTags.map((t) => [t.id, t]));
+  const map = new Map<string, Tag[]>();
+  for (const assoc of associations) {
+    const tag = tagById.get(assoc.tagId);
+    if (tag) {
+      const existing = map.get(assoc.expenseId);
+      if (existing) existing.push(tag);
+      else map.set(assoc.expenseId, [tag]);
+    }
+  }
+  return map;
+}
+
 export const useTagStore = create<TagState>((set, get) => ({
   tags: [],
+  expenseTagMap: new Map(),
   isLoading: false,
 
   loadTags: () => {
@@ -29,7 +46,8 @@ export const useTagStore = create<TagState>((set, get) => ({
     try {
       const result = db.select().from(tags).all();
       const sorted = (result as Tag[]).sort((a, b) => b.createdAt - a.createdAt);
-      set({ tags: sorted, isLoading: false });
+      const expenseTagMap = buildExpenseTagMap(sorted);
+      set({ tags: sorted, expenseTagMap, isLoading: false });
     } catch {
       set({ isLoading: false });
     }
@@ -73,31 +91,37 @@ export const useTagStore = create<TagState>((set, get) => ({
   },
 
   getTagsForExpense: (expenseId) => {
-    const associations = db
-      .select()
-      .from(expenseTags)
-      .where(eq(expenseTags.expenseId, expenseId))
-      .all();
-    const tagIds = new Set(associations.map((a: any) => a.tagId));
-    return get().tags.filter((t) => tagIds.has(t.id));
+    return get().expenseTagMap.get(expenseId) || [];
   },
 
   setExpenseTags: (expenseId, tagIds) => {
-    // Remove existing associations
     db.delete(expenseTags).where(eq(expenseTags.expenseId, expenseId)).run();
-    // Insert new associations
     for (const tagId of tagIds) {
       db.insert(expenseTags).values({ expenseId, tagId }).run();
     }
+    // Update in-memory map
+    const allTags = get().tags;
+    const tagById = new Map(allTags.map((t) => [t.id, t]));
+    const newTags = tagIds.map((id) => tagById.get(id)).filter(Boolean) as Tag[];
+    set((state) => {
+      const updated = new Map(state.expenseTagMap);
+      updated.set(expenseId, newTags);
+      return { expenseTagMap: updated };
+    });
   },
 
   removeExpenseTags: (expenseId) => {
     db.delete(expenseTags).where(eq(expenseTags.expenseId, expenseId)).run();
+    set((state) => {
+      const updated = new Map(state.expenseTagMap);
+      updated.delete(expenseId);
+      return { expenseTagMap: updated };
+    });
   },
 
   clearAllTags: () => {
     db.delete(expenseTags).run();
     db.delete(tags).run();
-    set({ tags: [] });
+    set({ tags: [], expenseTagMap: new Map() });
   },
 }));
