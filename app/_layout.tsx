@@ -23,7 +23,6 @@ import { useSavingsGoalStore } from '@/stores/useSavingsGoalStore';
 import { useDebtStore } from '@/stores/useDebtStore';
 import { useTagStore } from '@/stores/useTagStore';
 import { useTemplateStore } from '@/stores/useTemplateStore';
-import { addShortcutListener, getInitialShortcut, donateAddExpenseShortcut, ADD_EXPENSE_ACTIVITY_TYPE } from '@/services/siriShortcuts';
 import AnimatedSplash from '@/components/AnimatedSplash';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { DialogProvider } from '@/contexts/DialogContext';
@@ -151,34 +150,12 @@ export default function RootLayout() {
           await refreshNotifications(settings.notificationsEnabled, settings.budgetAlerts, settings.dailyReminderEnabled, streak, settings.dailySummaryEnabled, settings.currencySymbol);
         }
         setupQuickActions();
-        donateAddExpenseShortcut();
       } catch (error) {
         console.error('Service init error:', error);
       }
     }
 
     initServices();
-  }, [isReady]);
-
-  // Handle Siri shortcut invocation (iOS only)
-  useEffect(() => {
-    if (!addShortcutListener || !isReady) return;
-
-    const subscription = addShortcutListener(({ activityType }: any) => {
-      if (activityType === ADD_EXPENSE_ACTIVITY_TYPE) {
-        router.push('/(tabs)/add');
-      }
-    });
-
-    if (getInitialShortcut) {
-      getInitialShortcut().then((shortcut: any) => {
-        if (shortcut?.activityType === ADD_EXPENSE_ACTIVITY_TYPE) {
-          router.push('/(tabs)/add');
-        }
-      });
-    }
-
-    return () => { if (subscription?.remove) subscription.remove(); };
   }, [isReady]);
 
   // Show AnimatedSplash until both animation and bootstrap are done

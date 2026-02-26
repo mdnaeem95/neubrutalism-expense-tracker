@@ -10,7 +10,6 @@ import { useDebtStore } from '@/stores/useDebtStore';
 import { useTagStore } from '@/stores/useTagStore';
 import { useTemplateStore } from '@/stores/useTemplateStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
-import { presentAddExpenseShortcut, nativeSiriAvailable } from '@/services/siriShortcuts';
 import { useBudgetStore } from '@/stores/useBudgetStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
@@ -249,39 +248,6 @@ export default function SettingsScreen() {
         </NeuCard>
       </MotiView>
 
-      {/* Siri & Shortcuts — iOS only */}
-      {Platform.OS === 'ios' && nativeSiriAvailable && (
-        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 250 }}>
-          <Text style={styles.sectionTitle}>Siri & Shortcuts</Text>
-          <NeuCard>
-            <View style={styles.siriSection}>
-              <View style={styles.siriInfo}>
-                <View style={[styles.settingsIcon, { backgroundColor: colors.purple + '20' }]}>
-                  <MaterialCommunityIcons name="microphone" size={18} color={colors.purple} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.settingLabel, { marginBottom: 0 }]}>Add Expense</Text>
-                  <Text style={styles.siriDescription}>Use Siri or Back Tap to quickly add expenses</Text>
-                </View>
-              </View>
-              <Pressable
-                onPress={() => {
-                  presentAddExpenseShortcut(({ status }) => {
-                    if (status === 'added' || status === 'updated') {
-                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                      showSuccess('Siri Shortcut Added', 'Say "New expense" to Siri or assign to Back Tap.');
-                    }
-                  });
-                }}
-                style={[styles.siriButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
-              >
-                <MaterialCommunityIcons name="microphone" size={16} color={colors.text} />
-                <Text style={[styles.settingLabel, { marginBottom: 0 }]}>Add to Siri</Text>
-              </Pressable>
-            </View>
-          </NeuCard>
-        </MotiView>
-      )}
 
       {/* Data */}
       <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 400, delay: 350 }}>
@@ -394,10 +360,6 @@ const createStyles = (colors: ThemeColors, borders: ThemeBorders, typography: Th
   currencySymbol: { fontSize: 18, fontWeight: '700', fontFamily: 'SpaceMono_700Bold', minWidth: 28, textAlign: 'center', color: colors.text },
   currencyCode: { fontSize: 14, fontWeight: '700', fontFamily: 'SpaceMono_700Bold', width: 36, color: colors.text },
   currencyName: { ...typography.bodySmall, flex: 1 },
-  siriSection: { gap: spacing.sm },
-  siriInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  siriDescription: { ...typography.caption, marginTop: 2 },
-  siriButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, alignSelf: 'center', marginTop: spacing.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: borderRadius.sm, borderWidth: 2 },
   premiumStatus: { alignItems: 'center', marginTop: spacing.xl },
   premiumStatusText: { ...typography.body, fontWeight: '700', color: colors.primary },
 });
