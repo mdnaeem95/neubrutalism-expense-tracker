@@ -10,7 +10,7 @@ import { useDebtStore } from '@/stores/useDebtStore';
 import { useTagStore } from '@/stores/useTagStore';
 import { useTemplateStore } from '@/stores/useTemplateStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
-import { presentAddExpenseShortcut, nativeSiriAvailable, AddToSiriButton, SiriButtonStyles, ADD_EXPENSE_SHORTCUT } from '@/services/siriShortcuts';
+import { presentAddExpenseShortcut, nativeSiriAvailable } from '@/services/siriShortcuts';
 import { useBudgetStore } from '@/stores/useBudgetStore';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useExpenseStore } from '@/stores/useExpenseStore';
@@ -264,34 +264,20 @@ export default function SettingsScreen() {
                   <Text style={styles.siriDescription}>Use Siri or Back Tap to quickly add expenses</Text>
                 </View>
               </View>
-              {AddToSiriButton ? (
-                <AddToSiriButton
-                  shortcut={ADD_EXPENSE_SHORTCUT}
-                  buttonStyle={SiriButtonStyles?.blackOutline ?? 3}
-                  onPress={() => {
-                    // Native AddToSiriButton handles presentation itself —
-                    // onPress fires after the sheet dismisses
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                    showSuccess('Siri Shortcut Added', 'Say "New expense" to Siri or assign to Back Tap.');
-                  }}
-                  style={{ alignSelf: 'center', marginTop: spacing.md }}
-                />
-              ) : (
-                <Pressable
-                  onPress={() => {
-                    presentAddExpenseShortcut(({ status }) => {
-                      if (status === 'added' || status === 'updated') {
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                        showSuccess('Siri Shortcut Added', 'Say "New expense" to Siri or assign to Back Tap.');
-                      }
-                    });
-                  }}
-                  style={[styles.siriButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
-                >
-                  <MaterialCommunityIcons name="microphone" size={16} color={colors.text} />
-                  <Text style={[styles.settingLabel, { marginBottom: 0 }]}>Add to Siri</Text>
-                </Pressable>
-              )}
+              <Pressable
+                onPress={() => {
+                  presentAddExpenseShortcut(({ status }) => {
+                    if (status === 'added' || status === 'updated') {
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      showSuccess('Siri Shortcut Added', 'Say "New expense" to Siri or assign to Back Tap.');
+                    }
+                  });
+                }}
+                style={[styles.siriButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
+              >
+                <MaterialCommunityIcons name="microphone" size={16} color={colors.text} />
+                <Text style={[styles.settingLabel, { marginBottom: 0 }]}>Add to Siri</Text>
+              </Pressable>
             </View>
           </NeuCard>
         </MotiView>
