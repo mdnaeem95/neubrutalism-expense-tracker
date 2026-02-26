@@ -343,11 +343,11 @@ export default function SettingsScreen() {
           <SettingsRow icon="information-outline" label="Version" value={require('expo-constants').default.expoConfig?.version ?? '—'} onPress={() => {}} showArrow={false} colors={colors} styles={styles} />
           <View style={styles.divider} />
           <SettingsRow icon="file-document-outline" label="Privacy Policy" onPress={() => {
-            WebBrowser.openBrowserAsync('https://mdnaeem95.github.io/neubrutalism-expense-tracker/privacy.html');
+            WebBrowser.openBrowserAsync('https://neubrut-website.vercel.app/legal/privacy-ledgr');
           }} color={colors.accent} colors={colors} styles={styles} />
           <View style={styles.divider} />
           <SettingsRow icon="clipboard-text-outline" label="Terms of Service" onPress={() => {
-            WebBrowser.openBrowserAsync('https://mdnaeem95.github.io/neubrutalism-expense-tracker/terms.html');
+            WebBrowser.openBrowserAsync('https://neubrut-website.vercel.app/legal/terms-ledgr');
           }} color={colors.accent} colors={colors} styles={styles} />
         </NeuCard>
       </MotiView>
